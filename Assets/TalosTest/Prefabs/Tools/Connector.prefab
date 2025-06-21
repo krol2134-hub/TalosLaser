@@ -138,6 +138,7 @@ MonoBehaviour:
   placeObstaclesMask:
     serializedVersion: 2
     m_Bits: 1
+  laserPoint: {fileID: 1384316401214928093}
 --- !u!1 &6507522071130911514
 GameObject:
   m_ObjectHideFlags: 0
