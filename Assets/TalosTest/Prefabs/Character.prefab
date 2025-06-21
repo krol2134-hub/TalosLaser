@@ -272,9 +272,9 @@ MonoBehaviour:
   interactableLayer:
     serializedVersion: 2
     m_Bits: 128
-  generatorLayer:
+  connecntionLayer:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 384
   placeDistance: 2
 --- !u!114 &6441770743174978124
 MonoBehaviour:
@@ -586,6 +586,26 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 2417310517920258159, guid: 78b137165bdf7df4c8572ce7fec3cb7b,
+        type: 3}
+      propertyPath: m_BackGroundColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2417310517920258159, guid: 78b137165bdf7df4c8572ce7fec3cb7b,
+        type: 3}
+      propertyPath: m_BackGroundColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2417310517920258159, guid: 78b137165bdf7df4c8572ce7fec3cb7b,
+        type: 3}
+      propertyPath: m_BackGroundColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2417310517920258159, guid: 78b137165bdf7df4c8572ce7fec3cb7b,
+        type: 3}
+      propertyPath: m_BackGroundColor.r
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4747210682169596129, guid: 78b137165bdf7df4c8572ce7fec3cb7b,
         type: 3}
