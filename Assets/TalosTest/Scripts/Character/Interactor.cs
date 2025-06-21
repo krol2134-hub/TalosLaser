@@ -11,7 +11,7 @@ namespace TalosTest.Character
         [SerializeField] private float interactDistance = 2;
         [SerializeField] private float connectDistance = 20;
         [SerializeField] private LayerMask interactableLayer;
-        [SerializeField] private LayerMask generatorLayer;
+        [SerializeField] private LayerMask connecntionLayer;
         [SerializeField] private float placeDistance = 2;
 
         private MovableTool _heldTool;
@@ -113,7 +113,7 @@ namespace TalosTest.Character
         {
             connectionPoint = default;
             
-            var connection = GetLookingAt<IConnectionPoint>(generatorLayer, connectDistance);
+            var connection = GetLookingAt<IConnectionPoint>(connecntionLayer, connectDistance);
             if (connection is null)
             {
                 return false;
