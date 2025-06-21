@@ -1,4 +1,5 @@
-﻿using TalosTest.Tool;
+﻿using System.Collections.Generic;
+using TalosTest.Tool;
 using UnityEngine;
 
 namespace TalosTest.Character
@@ -13,10 +14,12 @@ namespace TalosTest.Character
         [SerializeField] private LayerMask generatorLayer;
         [SerializeField] private float placeDistance = 2;
 
-        public MovableTool HeldTool { get; private set; }
+        private MovableTool _heldTool;
+        private readonly List<Transform> _heldConnections = new();
 
         public Transform CameraTransform => cameraTransform;
         public float PlaceDistance => placeDistance;
+        public IReadOnlyCollection<Transform> HeldConnections => _heldConnections;
 
         public void PickUpTool(MovableTool tool)
         {
@@ -25,33 +28,37 @@ namespace TalosTest.Character
                 Debug.LogError($"{name}: try pick up tool with NULL reference");
                 return;
             }
+
+            _heldTool = tool;
+
+            Instantiate(_heldTool.PlacedTool, heldItemRoot);
+
+            _heldTool.PickUp(this);
             
-            HeldTool = tool;
-            
-            Instantiate(HeldTool.PlacedTool, heldItemRoot);
-            
-            HeldTool.PickUp(this);
+            _heldConnections.Clear();
         }
         
         public void DropTool()
         {
-            if (HeldTool is not null)
+            if (_heldTool is not null)
             {
-                HeldTool.Drop(this);
+                _heldTool.Drop(this);
             }
-            
-            HeldTool = null;
+
+            _heldTool = null;
 
             var childCount = heldItemRoot.transform.childCount;
             for (var i = childCount - 1; i >= 0; i--)
             {
                 Destroy(heldItemRoot.transform.GetChild(i).gameObject);
             }
+
+            _heldConnections.Clear();
         }
 
         public void HandleInteractInput()
         {
-            if (HeldTool is null)
+            if (_heldTool is null)
             {
                 var connector = GetLookingAt<ITool>(interactableLayer, interactDistance);
                 //TODO Use Interface for HeldTool
@@ -62,26 +69,34 @@ namespace TalosTest.Character
             }
             else
             {
+                var connectionPoint = GetLookingAt<IConnectionPoint>(generatorLayer, connectDistance);
+                if (connectionPoint is not null)
+                {
+                    var point = connectionPoint.GetPoint();
+                    _heldConnections.Add(point);
+                    return;
+                }
+                
                 DropTool();
             }
         }
 
         public string GetInteractText()
         {
-            if (HeldTool is null)
+            if (_heldTool is null)
             {
                 return GetLookingAt<ITool>(interactableLayer, interactDistance)?.GetPickUpText();
             }
             else
             {
 
-                var generator = GetLookingAt<IGenerator>(generatorLayer, connectDistance);
-                if (generator is not null)
+                var connectionPoint = GetLookingAt<IConnectionPoint>(generatorLayer, connectDistance);
+                if (connectionPoint is not null)
                 {
-                    return generator.GetConnectText();
+                    return connectionPoint.GetSelectText();
                 }
                 
-                return HeldTool.GetInteractWithToolInHandsText();
+                return _heldTool.GetInteractWithToolInHandsText();
             }
         }
         
