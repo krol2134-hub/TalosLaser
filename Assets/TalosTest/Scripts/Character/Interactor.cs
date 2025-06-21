@@ -8,6 +8,7 @@ namespace TalosTest.Character
         [SerializeField] private Transform cameraTransform;
         [SerializeField] private Transform heldItemRoot;
         [SerializeField] private float interactDistance = 2;
+        [SerializeField] private float connectDistance = 20;
         [SerializeField] private LayerMask interactableLayer;
         [SerializeField] private float placeDistance = 2;
 
@@ -36,7 +37,7 @@ namespace TalosTest.Character
         {
             if (HeldTool is null)
             {
-                GetLookingAt(interactableLayer, interactDistance)?.Interact(this);
+                GetLookingAt<IInteractable>(interactableLayer, interactDistance)?.Interact(this);
             }
             else
             {
@@ -48,20 +49,27 @@ namespace TalosTest.Character
         {
             if (HeldTool is null)
             {
-                return GetLookingAt(interactableLayer, interactDistance)?.GetInteractText(this);
+                return GetLookingAt<IInteractable>(interactableLayer, interactDistance)?.GetInteractText(this);
             }
             else
             {
+                var generator = GetLookingAt<IGenerator>(interactableLayer, connectDistance);
+                if (generator is not null)
+                {
+                    return generator.GetConnectText();
+                }
+                
                 return HeldTool.GetInteractWithToolInHandsText(this);
             }
         }
-
-        private IInteractable GetLookingAt(LayerMask layerMask, float maxDistance)
+        
+        private T GetLookingAt<T>(LayerMask layerMask, float maxDistance) 
+            where T : class
         {
             var isHitTool = Physics.Raycast(cameraTransform.position, cameraTransform.forward, out var hit, maxDistance, layerMask);
             if (isHitTool)
             {
-                return hit.collider.GetComponentInParent<IInteractable>();
+                return hit.collider.GetComponentInParent<T>();
             }
 
             return null;
