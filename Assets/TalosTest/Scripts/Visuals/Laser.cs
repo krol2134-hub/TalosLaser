@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace TalosTest
+namespace TalosTest.Visuals
 {
     // based on Hovl Studio laser script
     [RequireComponent(typeof(LineRenderer))]

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace TalosTest
+namespace TalosTest.Tool
 {
     public class ToolGenerator : MonoBehaviour
     {

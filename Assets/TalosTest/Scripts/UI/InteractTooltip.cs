@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using TalosTest.Character;
 using TMPro;
 using UnityEngine;
 

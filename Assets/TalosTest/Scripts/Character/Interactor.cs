@@ -1,8 +1,8 @@
-﻿using System;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
+using TalosTest.Tool;
 using UnityEngine;
 
-namespace TalosTest
+namespace TalosTest.Character
 {
     public class Interactor : MonoBehaviour
     {
