@@ -10,6 +10,7 @@ namespace TalosTest.Character
         [SerializeField] private float interactDistance = 2;
         [SerializeField] private float connectDistance = 20;
         [SerializeField] private LayerMask interactableLayer;
+        [SerializeField] private LayerMask generatorLayer;
         [SerializeField] private float placeDistance = 2;
 
         public MovableTool HeldTool { get; private set; }
@@ -62,7 +63,7 @@ namespace TalosTest.Character
             else
             {
 
-                var generator = GetLookingAt<IGenerator>(interactableLayer, connectDistance);
+                var generator = GetLookingAt<IGenerator>(generatorLayer, connectDistance);
                 if (generator is not null)
                 {
                     return generator.GetConnectText();
