@@ -9,10 +9,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7364543020139696123}
-  - component: {fileID: 214629324798750845}
-  - component: {fileID: 477402887506703022}
+  - component: {fileID: 4021790384238600269}
+  - component: {fileID: 1487552112929107333}
   m_Layer: 8
-  m_Name: GeneratorBlue
+  m_Name: GeneratorBase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -32,10 +32,10 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2918018342689412270}
-  - {fileID: 1187413896636556756}
+  - {fileID: 7907244543225565540}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &214629324798750845
+--- !u!65 &4021790384238600269
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -56,7 +56,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0.5, z: 0}
---- !u!114 &477402887506703022
+--- !u!114 &1487552112929107333
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -68,8 +68,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35217afc51004bc6980eb329fb9b4490, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  laserPoint: {fileID: 1187413896636556756}
---- !u!1 &1939344930658443838
+  laserPoint: {fileID: 7907244543225565540}
+--- !u!1 &5927036637011352083
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -77,7 +77,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1187413896636556756}
+  - component: {fileID: 7907244543225565540}
   m_Layer: 8
   m_Name: laserpoint
   m_TagString: Untagged
@@ -85,13 +85,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1187413896636556756
+--- !u!4 &7907244543225565540
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1939344930658443838}
+  m_GameObject: {fileID: 5927036637011352083}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.75, z: 0}
@@ -162,7 +162,8 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: b07b54d19656dba42b0cd32770a40ae7, type: 2}
+      objectReference: {fileID: 2385314905884685917, guid: e87e6428e34a5064ba5dc8afbc701bff,
+        type: 3}
     - target: {fileID: -5754084199372789682, guid: ca5404ec9a85c3546bd3ae2e26c74b2d,
         type: 3}
       propertyPath: m_Mesh
