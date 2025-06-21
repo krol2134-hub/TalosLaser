@@ -1,10 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using KinematicCharacterController;
-using System;
+using UnityEngine;
 
-namespace TalosTest
+namespace TalosTest.Character
 {
     public struct PlayerCharacterInputs
     {

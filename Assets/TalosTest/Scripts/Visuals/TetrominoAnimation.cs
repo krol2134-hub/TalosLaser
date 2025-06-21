@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace TalosTest
+namespace TalosTest.Visuals
 {
     public class TetrominoAnimation : MonoBehaviour
     {

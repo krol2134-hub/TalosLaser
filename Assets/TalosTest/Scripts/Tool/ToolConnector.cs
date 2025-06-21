@@ -1,4 +1,6 @@
-﻿namespace TalosTest
+﻿using TalosTest.Character;
+
+namespace TalosTest.Tool
 {
     public class ToolConnector : MovableTool
     {

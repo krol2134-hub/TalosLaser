@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using TalosTest.Character;
+using UnityEngine;
 
-namespace TalosTest
+namespace TalosTest.Tool
 {
     public abstract class MovableTool : MonoBehaviour, IInteractable
     {

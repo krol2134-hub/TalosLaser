@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace TalosTest
+namespace TalosTest.Visuals
 {
     [RequireComponent(typeof(LineRenderer))]
     public class LaserPath : MonoBehaviour
