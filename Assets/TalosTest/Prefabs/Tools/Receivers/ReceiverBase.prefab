@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 4573938061527189156}
   - component: {fileID: 7249738139539878770}
   m_Layer: 8
-  m_Name: ReceiverRed
+  m_Name: ReceiverBase
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -176,7 +176,8 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: 4a3b3662714bfba438013dff1a54b8b2, type: 2}
+      objectReference: {fileID: 8213195907274000022, guid: ca5404ec9a85c3546bd3ae2e26c74b2d,
+        type: 3}
     - target: {fileID: 919132149155446097, guid: ca5404ec9a85c3546bd3ae2e26c74b2d,
         type: 3}
       propertyPath: m_Name
