@@ -9,17 +9,12 @@ namespace TalosTest.Tool
             PickUp(interactor);
         }
 
-        public override void InteractWithToolInHands(Interactor interactor)
-        {
-            Place(interactor);
-        }
-
-        public override string GetInteractText(Interactor interactor)
+        public override string GetInteractText()
         {
             return "Take Connector";
         }
 
-        public override string GetInteractWithToolInHandsText(Interactor interactor)
+        public override string GetInteractWithToolInHandsText()
         {
             return "Drop";
         }

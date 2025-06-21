@@ -4,7 +4,7 @@ namespace TalosTest.Tool
 {
     public interface IInteractable
     {
-        string GetInteractText(Interactor interactor);
-        void Interact(Interactor interactor);
+        public string GetInteractText();
+        public void Interact(Interactor interactor);
     }
 }

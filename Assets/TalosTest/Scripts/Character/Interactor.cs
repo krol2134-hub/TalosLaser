@@ -19,17 +19,25 @@ namespace TalosTest.Character
 
         public void PickUpTool(MovableTool tool)
         {
+            if (tool == null)
+            {
+                Debug.LogError($"{name}: try pick up tool with NULL reference");
+                return;
+            }
+            
             HeldTool = tool;
+
+            Instantiate(HeldTool.PlacedTool, heldItemRoot);
+        }
+        
+        public void DropTool()
+        {
+            HeldTool = null;
 
             var childCount = heldItemRoot.transform.childCount;
             for (var i = childCount - 1; i >= 0; i--)
             {
                 Destroy(heldItemRoot.transform.GetChild(i).gameObject);
-            }
-
-            if (tool is not null)
-            {
-                Instantiate(tool.PlacedTool, heldItemRoot);
             }
         }
 
@@ -41,7 +49,7 @@ namespace TalosTest.Character
             }
             else
             {
-                HeldTool.InteractWithToolInHands(this);
+                HeldTool.Drop(this);
             }
         }
 
@@ -49,17 +57,18 @@ namespace TalosTest.Character
         {
             if (HeldTool is null)
             {
-                return GetLookingAt<IInteractable>(interactableLayer, interactDistance)?.GetInteractText(this);
+                return GetLookingAt<IInteractable>(interactableLayer, interactDistance)?.GetInteractText();
             }
             else
             {
+
                 var generator = GetLookingAt<IGenerator>(interactableLayer, connectDistance);
                 if (generator is not null)
                 {
                     return generator.GetConnectText();
                 }
                 
-                return HeldTool.GetInteractWithToolInHandsText(this);
+                return HeldTool.GetInteractWithToolInHandsText();
             }
         }
         

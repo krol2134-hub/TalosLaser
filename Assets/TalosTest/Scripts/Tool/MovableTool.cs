@@ -13,21 +13,16 @@ namespace TalosTest.Tool
         private const float DownCastDistance = 1000f;
         
         public GameObject PlacedTool => placedTool;
-        
+
+        public abstract string GetInteractText();
+        public abstract string GetInteractWithToolInHandsText();
+
         public virtual void Interact(Interactor interactor)
         {
             PickUp(interactor);
         }
 
-        public virtual void InteractWithToolInHands(Interactor interactor)
-        {
-            Place(interactor);
-        }
-
-        public abstract string GetInteractText(Interactor interactor);
-        public abstract string GetInteractWithToolInHandsText(Interactor interactor);
-
-        protected void PickUp(Interactor interactor)
+        public virtual void PickUp(Interactor interactor)
         {
             var isHeldFree = interactor.HeldTool is null;
             if (!isHeldFree)
@@ -40,7 +35,7 @@ namespace TalosTest.Tool
             placedTool.SetActive(false);
         }
 
-        protected void Place(Interactor interactor)
+        public virtual void Drop(Interactor interactor)
         {
             var isSameHeldTool = interactor.HeldTool == this;
             if (!isSameHeldTool)
@@ -48,7 +43,7 @@ namespace TalosTest.Tool
                 return;
             }
             
-            interactor.PickUpTool(null);
+            interactor.DropTool();
             transform.position = GetPlacePosition(interactor);
             transform.rotation = Quaternion.identity;
             placedTool.SetActive(true);
