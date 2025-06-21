@@ -209,11 +209,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5868077659002457708}
-  - component: {fileID: 7294723131139922958}
-  - component: {fileID: 5433006364903899566}
-  - component: {fileID: 6441770743174978124}
   - component: {fileID: 5617792909415371545}
   - component: {fileID: 5591250126895720452}
+  - component: {fileID: 6441770743174978124}
+  - component: {fileID: 5433006364903899566}
+  - component: {fileID: 7294723131139922958}
   m_Layer: 6
   m_Name: Character
   m_TagString: Untagged
@@ -238,29 +238,68 @@ Transform:
   - {fileID: 2987947749940792648}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!136 &7294723131139922958
-CapsuleCollider:
-  m_ObjectHideFlags: 8
+--- !u!114 &5617792909415371545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5764106601475863796}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 1, z: 0}
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f47bc8afb9a3c645b96323a7ab16825, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  OrbitCamera: {fileID: 5402932056861605286}
+  CameraFollowPoint: {fileID: 5593221224000310828}
+  Character: {fileID: 6441770743174978124}
+--- !u!114 &5591250126895720452
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5764106601475863796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4814d2a2d0d7426a8fe574132495a2d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CameraTransform: {fileID: 2987947749940792648}
+  FirstPersonHandRoot: {fileID: 2940416650774007061}
+  InteractDistance: 2
+  InteractableLayer:
+    serializedVersion: 2
+    m_Bits: 384
+  PlaceDistance: 2
+--- !u!114 &6441770743174978124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5764106601475863796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c38677f2707074f46a25baa7c5f4a08a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Motor: {fileID: 5433006364903899566}
+  Interactor: {fileID: 5591250126895720452}
+  MaxStableMoveSpeed: 10
+  StableMovementSharpness: 15
+  OrientationSharpness: 10
+  MaxAirMoveSpeed: 10
+  AirAccelerationSpeed: 5
+  Drag: 0.1
+  AllowJumpingWhenSliding: 0
+  AllowDoubleJump: 0
+  AllowWallJump: 0
+  JumpSpeed: 10
+  JumpPreGroundingGraceTime: 0
+  JumpPostGroundingGraceTime: 0
+  Gravity: {x: 0, y: -30, z: 0}
+  MeshRoot: {fileID: 8894273209418778185}
 --- !u!114 &5433006364903899566
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -303,68 +342,29 @@ MonoBehaviour:
   CheckMovementInitialOverlaps: 1
   KillVelocityWhenExceedMaxMovementIterations: 1
   KillRemainingMovementWhenExceedMaxMovementIterations: 1
---- !u!114 &6441770743174978124
-MonoBehaviour:
-  m_ObjectHideFlags: 0
+--- !u!136 &7294723131139922958
+CapsuleCollider:
+  m_ObjectHideFlags: 8
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5764106601475863796}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c38677f2707074f46a25baa7c5f4a08a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Motor: {fileID: 5433006364903899566}
-  Interactor: {fileID: 5591250126895720452}
-  MaxStableMoveSpeed: 10
-  StableMovementSharpness: 15
-  OrientationSharpness: 10
-  MaxAirMoveSpeed: 10
-  AirAccelerationSpeed: 5
-  Drag: 0.1
-  AllowJumpingWhenSliding: 0
-  AllowDoubleJump: 0
-  AllowWallJump: 0
-  JumpSpeed: 10
-  JumpPreGroundingGraceTime: 0
-  JumpPostGroundingGraceTime: 0
-  Gravity: {x: 0, y: -30, z: 0}
-  MeshRoot: {fileID: 8894273209418778185}
---- !u!114 &5617792909415371545
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5764106601475863796}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2f47bc8afb9a3c645b96323a7ab16825, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  OrbitCamera: {fileID: 5402932056861605286}
-  CameraFollowPoint: {fileID: 5593221224000310828}
-  Character: {fileID: 6441770743174978124}
---- !u!114 &5591250126895720452
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5764106601475863796}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4814d2a2d0d7426a8fe574132495a2d7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  CameraTransform: {fileID: 2987947749940792648}
-  FirstPersonHandRoot: {fileID: 2940416650774007061}
-  InteractDistance: 2
-  InteractableLayer:
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 384
-  PlaceDistance: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!1 &5850207924846738030
 GameObject:
   m_ObjectHideFlags: 0

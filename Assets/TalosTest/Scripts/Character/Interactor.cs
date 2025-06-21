@@ -1,43 +1,34 @@
-﻿using JetBrains.Annotations;
-using TalosTest.Tool;
+﻿using TalosTest.Tool;
 using UnityEngine;
 
 namespace TalosTest.Character
 {
     public class Interactor : MonoBehaviour
     {
-        public Transform CameraTransform;
-        public Transform FirstPersonHandRoot;
-        public float InteractDistance;
-        public LayerMask InteractableLayer;
-        public float PlaceDistance;
+        [SerializeField] private Transform cameraTransform;
+        [SerializeField] private Transform heldItemRoot;
+        [SerializeField] private float interactDistance = 2;
+        [SerializeField] private LayerMask interactableLayer;
+        [SerializeField] private float placeDistance = 2;
 
-        [CanBeNull] public MovableTool HeldTool { get; private set; }
+        public MovableTool HeldTool { get; private set; }
 
-        [CanBeNull]
-        public IInteractable GetLookingAt(LayerMask layerMask, float maxDistance)
-        {
-            if (Physics.Raycast(CameraTransform.position, CameraTransform.forward, out var hit, maxDistance, layerMask))
-            {
-                return hit.collider.GetComponentInParent<IInteractable>();
-            }
+        public Transform CameraTransform => cameraTransform;
+        public float PlaceDistance => placeDistance;
 
-            return null;
-        }
-
-        public void PickUpTool([CanBeNull] MovableTool tool)
+        public void PickUpTool(MovableTool tool)
         {
             HeldTool = tool;
 
-            int childCount = FirstPersonHandRoot.transform.childCount;
-            for (int i = childCount - 1; i >= 0; i--)
+            var childCount = heldItemRoot.transform.childCount;
+            for (var i = childCount - 1; i >= 0; i--)
             {
-                Destroy(FirstPersonHandRoot.transform.GetChild(i).gameObject);
+                Destroy(heldItemRoot.transform.GetChild(i).gameObject);
             }
 
             if (tool is not null)
             {
-                Instantiate(tool.FirstPersonVisualsPrefab, FirstPersonHandRoot);
+                Instantiate(tool.FirstPersonVisualsPrefab, heldItemRoot);
             }
         }
 
@@ -45,7 +36,7 @@ namespace TalosTest.Character
         {
             if (HeldTool is null)
             {
-                GetLookingAt(InteractableLayer, InteractDistance)?.Interact(this);
+                GetLookingAt(interactableLayer, interactDistance)?.Interact(this);
             }
             else
             {
@@ -53,17 +44,27 @@ namespace TalosTest.Character
             }
         }
 
-        [CanBeNull]
         public string GetInteractText()
         {
             if (HeldTool is null)
             {
-                return GetLookingAt(InteractableLayer, InteractDistance)?.GetInteractText(this);
+                return GetLookingAt(interactableLayer, interactDistance)?.GetInteractText(this);
             }
             else
             {
                 return HeldTool.GetInteractWithToolInHandsText(this);
             }
+        }
+
+        private IInteractable GetLookingAt(LayerMask layerMask, float maxDistance)
+        {
+            var isHitTool = Physics.Raycast(cameraTransform.position, cameraTransform.forward, out var hit, maxDistance, layerMask);
+            if (isHitTool)
+            {
+                return hit.collider.GetComponentInParent<IInteractable>();
+            }
+
+            return null;
         }
     }
 }
