@@ -131,11 +131,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e412a9dce2e34a0fa958a28809aba034, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlacedTool: {fileID: 7554413843773525573}
-  PlacedToolCollider: {fileID: 7179449042059780866}
-  FirstPersonVisualsPrefab: {fileID: 7032066351190124930, guid: 1a41e01797164d54ca5326e74883c811,
+  placedTool: {fileID: 7554413843773525573}
+  placedToolCollider: {fileID: 7179449042059780866}
+  visualPrefab: {fileID: 7032066351190124930, guid: 1a41e01797164d54ca5326e74883c811,
     type: 3}
-  PlaceObstaclesMask:
+  placeObstaclesMask:
     serializedVersion: 2
     m_Bits: 1
 --- !u!1 &6507522071130911514

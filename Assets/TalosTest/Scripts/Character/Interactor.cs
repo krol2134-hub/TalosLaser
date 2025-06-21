@@ -28,7 +28,7 @@ namespace TalosTest.Character
 
             if (tool is not null)
             {
-                Instantiate(tool.FirstPersonVisualsPrefab, heldItemRoot);
+                Instantiate(tool.PlacedTool, heldItemRoot);
             }
         }
 
