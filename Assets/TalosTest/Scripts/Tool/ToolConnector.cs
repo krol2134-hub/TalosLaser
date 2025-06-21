@@ -4,7 +4,6 @@ namespace TalosTest.Tool
 {
     public class ToolConnector : MovableTool
     {
-
         public override void Interact(Interactor interactor)
         {
             PickUp(interactor);
@@ -24,6 +23,5 @@ namespace TalosTest.Tool
         {
             return "Drop";
         }
-
     }
 }

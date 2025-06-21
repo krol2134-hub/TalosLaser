@@ -5,13 +5,15 @@ namespace TalosTest.Tool
 {
     public abstract class MovableTool : MonoBehaviour, IInteractable
     {
+        [SerializeField] private GameObject placedTool;
+        [SerializeField] private BoxCollider placedToolCollider;
+        [SerializeField] private GameObject visualPrefab;
+        [SerializeField] private LayerMask placeObstaclesMask;
 
-        public GameObject PlacedTool;
-        public BoxCollider PlacedToolCollider;
-        public GameObject FirstPersonVisualsPrefab;
-        public LayerMask PlaceObstaclesMask;
-
-
+        private const float DownCastDistance = 1000f;
+        
+        public GameObject PlacedTool => placedTool;
+        
         public virtual void Interact(Interactor interactor)
         {
             PickUp(interactor);
@@ -27,41 +29,48 @@ namespace TalosTest.Tool
 
         protected void PickUp(Interactor interactor)
         {
-            if (interactor.HeldTool is null)
+            var isHeldFree = interactor.HeldTool is null;
+            if (!isHeldFree)
             {
-                interactor.PickUpTool(this);
-                transform.position = Vector3.zero;
-                PlacedTool.SetActive(false);
+                return;
             }
+            
+            interactor.PickUpTool(this);
+            transform.position = Vector3.zero;
+            placedTool.SetActive(false);
         }
 
         protected void Place(Interactor interactor)
         {
-            if (interactor.HeldTool == this)
+            var isSameHeldTool = interactor.HeldTool == this;
+            if (!isSameHeldTool)
             {
-                interactor.PickUpTool(null);
-                transform.position = GetPlacePosition(interactor);
-                transform.rotation = Quaternion.identity;
-                PlacedTool.SetActive(true);
+                return;
             }
+            
+            interactor.PickUpTool(null);
+            transform.position = GetPlacePosition(interactor);
+            transform.rotation = Quaternion.identity;
+            placedTool.SetActive(true);
         }
 
-        public Vector3 GetPlacePosition(Interactor interactor)
+        private Vector3 GetPlacePosition(Interactor interactor)
         {
-            Vector3 halfExtents = PlacedToolCollider.size * 0.5f;
-            Vector3 offset = PlacedToolCollider.center;
+            var halfExtents = placedToolCollider.size * 0.5f;
+            var offset = placedToolCollider.center;
+            var forwardDistance = interactor.PlaceDistance;
             
-            float forwardDistance = interactor.PlaceDistance;
-            if (Physics.BoxCast(interactor.CameraTransform.position + offset, halfExtents,
-                    interactor.CameraTransform.forward, out var forwardHit,
-                    Quaternion.identity, forwardDistance, PlaceObstaclesMask))
+            var isHitObstacleToTool = Physics.BoxCast(interactor.CameraTransform.position + offset, halfExtents, interactor.CameraTransform.forward, out var forwardHit, Quaternion.identity, forwardDistance, placeObstaclesMask);
+            if (isHitObstacleToTool)
             {
                 forwardDistance = forwardHit.distance;
             }
-            Vector3 forwardPos = interactor.CameraTransform.position + interactor.CameraTransform.forward * (forwardDistance - 0.01f);
-            float downDistance = 1000f;
-            if (Physics.BoxCast(forwardPos + offset, halfExtents, Vector3.down, out var downHit, 
-                    Quaternion.identity, downDistance, PlaceObstaclesMask))
+            
+            var forwardPos = interactor.CameraTransform.position + interactor.CameraTransform.forward * (forwardDistance - 0.01f);
+            var downDistance = DownCastDistance;
+
+            var isHitObstacleByInteractorView = Physics.BoxCast(forwardPos + offset, halfExtents, Vector3.down, out var downHit, Quaternion.identity, downDistance, placeObstaclesMask);
+            if (isHitObstacleByInteractorView)
             {
                 downDistance = downHit.distance - offset.y;
             }

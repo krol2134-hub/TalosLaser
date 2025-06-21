@@ -265,13 +265,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4814d2a2d0d7426a8fe574132495a2d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CameraTransform: {fileID: 2987947749940792648}
-  FirstPersonHandRoot: {fileID: 2940416650774007061}
-  InteractDistance: 2
-  InteractableLayer:
+  cameraTransform: {fileID: 2987947749940792648}
+  heldItemRoot: {fileID: 2940416650774007061}
+  interactDistance: 2
+  interactableLayer:
     serializedVersion: 2
     m_Bits: 384
-  PlaceDistance: 2
+  placeDistance: 2
 --- !u!114 &6441770743174978124
 MonoBehaviour:
   m_ObjectHideFlags: 0
