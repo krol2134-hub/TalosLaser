@@ -68,6 +68,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fdf31f7d253042fabc83936f267019bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  laserPoint: {fileID: 2475784369411655951}
 --- !u!1 &5337618328505620684
 GameObject:
   m_ObjectHideFlags: 0
@@ -112,6 +113,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fdf31f7d253042fabc83936f267019bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  laserPoint: {fileID: 0}
 --- !u!1001 &3455487168471823173
 PrefabInstance:
   m_ObjectHideFlags: 0
