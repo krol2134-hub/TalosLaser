@@ -27,12 +27,19 @@ namespace TalosTest.Character
             }
             
             HeldTool = tool;
-
+            
             Instantiate(HeldTool.PlacedTool, heldItemRoot);
+            
+            HeldTool.PickUp(this);
         }
         
         public void DropTool()
         {
+            if (HeldTool is not null)
+            {
+                HeldTool.Drop(this);
+            }
+            
             HeldTool = null;
 
             var childCount = heldItemRoot.transform.childCount;
@@ -46,11 +53,16 @@ namespace TalosTest.Character
         {
             if (HeldTool is null)
             {
-                GetLookingAt<IInteractable>(interactableLayer, interactDistance)?.Interact(this);
+                var connector = GetLookingAt<ITool>(interactableLayer, interactDistance);
+                //TODO Use Interface for HeldTool
+                if (connector is not null)
+                {
+                    PickUpTool((MovableTool)connector);
+                }
             }
             else
             {
-                HeldTool.Drop(this);
+                DropTool();
             }
         }
 
@@ -58,7 +70,7 @@ namespace TalosTest.Character
         {
             if (HeldTool is null)
             {
-                return GetLookingAt<IInteractable>(interactableLayer, interactDistance)?.GetInteractText();
+                return GetLookingAt<ITool>(interactableLayer, interactDistance)?.GetPickUpText();
             }
             else
             {

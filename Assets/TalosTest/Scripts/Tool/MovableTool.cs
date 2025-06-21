@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace TalosTest.Tool
 {
-    public abstract class MovableTool : MonoBehaviour, IInteractable
+    public abstract class MovableTool : MonoBehaviour, ITool
     {
         [SerializeField] private GameObject placedTool;
         [SerializeField] private BoxCollider placedToolCollider;
@@ -14,36 +14,17 @@ namespace TalosTest.Tool
         
         public GameObject PlacedTool => placedTool;
 
-        public abstract string GetInteractText();
+        public abstract string GetPickUpText();
         public abstract string GetInteractWithToolInHandsText();
-
-        public virtual void Interact(Interactor interactor)
-        {
-            PickUp(interactor);
-        }
 
         public virtual void PickUp(Interactor interactor)
         {
-            var isHeldFree = interactor.HeldTool is null;
-            if (!isHeldFree)
-            {
-                return;
-            }
-            
-            interactor.PickUpTool(this);
             transform.position = Vector3.zero;
             placedTool.SetActive(false);
         }
 
         public virtual void Drop(Interactor interactor)
         {
-            var isSameHeldTool = interactor.HeldTool == this;
-            if (!isSameHeldTool)
-            {
-                return;
-            }
-            
-            interactor.DropTool();
             transform.position = GetPlacePosition(interactor);
             transform.rotation = Quaternion.identity;
             placedTool.SetActive(true);

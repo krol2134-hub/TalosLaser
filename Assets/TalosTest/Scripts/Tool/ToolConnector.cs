@@ -4,12 +4,7 @@ namespace TalosTest.Tool
 {
     public class ToolConnector : MovableTool
     {
-        public override void Interact(Interactor interactor)
-        {
-            PickUp(interactor);
-        }
-
-        public override string GetInteractText()
+        public override string GetPickUpText()
         {
             return "Take Connector";
         }
