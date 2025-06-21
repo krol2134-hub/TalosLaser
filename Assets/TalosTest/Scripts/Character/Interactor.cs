@@ -15,11 +15,11 @@ namespace TalosTest.Character
         [SerializeField] private float placeDistance = 2;
 
         private MovableTool _heldTool;
-        private readonly List<Transform> _heldConnections = new();
+        private readonly List<IConnectionPoint> _heldConnections = new();
 
         public Transform CameraTransform => cameraTransform;
         public float PlaceDistance => placeDistance;
-        public IReadOnlyCollection<Transform> HeldConnections => _heldConnections;
+        public IReadOnlyCollection<IConnectionPoint> HeldConnections => _heldConnections;
 
         public void PickUpTool(MovableTool tool)
         {
@@ -69,14 +69,12 @@ namespace TalosTest.Character
             }
             else
             {
-                var connectionPoint = GetLookingAt<IConnectionPoint>(generatorLayer, connectDistance);
-                if (connectionPoint is not null)
+                if (TryGetConnectPoint(out var connectionPoint))
                 {
-                    var point = connectionPoint.GetPoint();
-                    _heldConnections.Add(point);
+                    _heldConnections.Add(connectionPoint);
                     return;
                 }
-                
+
                 DropTool();
             }
         }
@@ -89,9 +87,8 @@ namespace TalosTest.Character
             }
             else
             {
-
-                var connectionPoint = GetLookingAt<IConnectionPoint>(generatorLayer, connectDistance);
-                if (connectionPoint is not null)
+                
+                if (TryGetConnectPoint(out var connectionPoint))
                 {
                     return connectionPoint.GetSelectText();
                 }
@@ -99,7 +96,7 @@ namespace TalosTest.Character
                 return _heldTool.GetInteractWithToolInHandsText();
             }
         }
-        
+
         private T GetLookingAt<T>(LayerMask layerMask, float maxDistance) 
             where T : class
         {
@@ -110,6 +107,26 @@ namespace TalosTest.Character
             }
 
             return null;
+        }
+
+        private bool TryGetConnectPoint(out IConnectionPoint connectionPoint)
+        {
+            connectionPoint = default;
+            
+            var connection = GetLookingAt<IConnectionPoint>(generatorLayer, connectDistance);
+            if (connection is null)
+            {
+                return false;
+            }
+                
+            var isNewConnection = !_heldConnections.Contains(connection);
+            if (isNewConnection)
+            {
+                connectionPoint = connection;
+                return true;
+            }
+
+            return false;
         }
     }
 }

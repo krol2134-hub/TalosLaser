@@ -9,7 +9,7 @@ namespace TalosTest.Tool
     {
         [SerializeField] private Transform laserPoint;
         
-        private readonly List<Transform> _connections = new();
+        private readonly List<IConnectionPoint> _connections = new();
         
         public override string GetPickUpText()
         {
@@ -55,7 +55,7 @@ namespace TalosTest.Tool
                 var nextConnection = _connections[index];
                 
                 Gizmos.color = Color.gray;
-                Gizmos.DrawLine(connectorPosition, nextConnection.position);
+                Gizmos.DrawLine(connectorPosition, nextConnection.GetPoint().position);
             }
         }
 #endif
