@@ -2,18 +2,13 @@
 
 namespace TalosTest.Tool
 {
-    public class Receiver : MonoBehaviour, IConnectionPoint
+    public class Receiver : LaserInteractable
     {
         [SerializeField] private Transform laserPoint;
-        
-        public string GetSelectText()
-        {
-            return "Select";
-        }
 
-        public Transform GetPoint()
+        public override bool CanConnectLaser()
         {
-            return laserPoint;
+            return true;
         }
     }
 }

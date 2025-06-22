@@ -15,11 +15,11 @@ namespace TalosTest.Character
         [SerializeField] private float placeDistance = 2;
 
         private MovableTool _heldTool;
-        private readonly List<IConnectionPoint> _heldConnections = new();
+        private readonly List<LaserInteractable> _heldConnections = new();
 
         public Transform CameraTransform => cameraTransform;
         public float PlaceDistance => placeDistance;
-        public IReadOnlyCollection<IConnectionPoint> HeldConnections => _heldConnections;
+        public IReadOnlyCollection<LaserInteractable> HeldConnections => _heldConnections;
 
         public void PickUpTool(MovableTool tool)
         {
@@ -69,7 +69,7 @@ namespace TalosTest.Character
             }
             else
             {
-                if (TryGetConnectPoint(out var connectionPoint))
+                if (TryGetLaserInteractable(out var connectionPoint))
                 {
                     _heldConnections.Add(connectionPoint);
                     return;
@@ -88,32 +88,20 @@ namespace TalosTest.Character
             else
             {
                 
-                if (TryGetConnectPoint(out var connectionPoint))
+                if (TryGetLaserInteractable(out var laserInteractable))
                 {
-                    return connectionPoint.GetSelectText();
+                    return laserInteractable.GetSelectText();
                 }
                 
                 return _heldTool.GetInteractWithToolInHandsText();
             }
         }
 
-        private T GetLookingAt<T>(LayerMask layerMask, float maxDistance) 
-            where T : class
-        {
-            var isHitTool = Physics.Raycast(cameraTransform.position, cameraTransform.forward, out var hit, maxDistance, layerMask);
-            if (isHitTool)
-            {
-                return hit.collider.GetComponentInParent<T>();
-            }
-
-            return null;
-        }
-
-        private bool TryGetConnectPoint(out IConnectionPoint connectionPoint)
+        private bool TryGetLaserInteractable(out LaserInteractable connectionPoint)
         {
             connectionPoint = default;
             
-            var connection = GetLookingAt<IConnectionPoint>(connecntionLayer, connectDistance);
+            var connection = GetLookingAt<LaserInteractable>(connecntionLayer, connectDistance);
             if (connection is null)
             {
                 return false;
@@ -127,6 +115,18 @@ namespace TalosTest.Character
             }
 
             return false;
+        }
+
+        private T GetLookingAt<T>(LayerMask layerMask, float maxDistance) 
+            where T : class
+        {
+            var isHitTool = Physics.Raycast(cameraTransform.position, cameraTransform.forward, out var hit, maxDistance, layerMask);
+            if (isHitTool)
+            {
+                return hit.collider.GetComponentInParent<T>();
+            }
+
+            return null;
         }
     }
 }

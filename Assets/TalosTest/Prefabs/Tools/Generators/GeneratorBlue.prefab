@@ -13,6 +13,21 @@ PrefabInstance:
       propertyPath: m_Name
       value: GeneratorBlue
       objectReference: {fileID: 0}
+    - target: {fileID: 1487552112929107333, guid: e060811d1b6d6d04da2c33ba151534f9,
+        type: 3}
+      propertyPath: laserColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1487552112929107333, guid: e060811d1b6d6d04da2c33ba151534f9,
+        type: 3}
+      propertyPath: laserColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1487552112929107333, guid: e060811d1b6d6d04da2c33ba151534f9,
+        type: 3}
+      propertyPath: laserColor.g
+      value: 0.03137255
+      objectReference: {fileID: 0}
     - target: {fileID: 4050370919612051393, guid: e060811d1b6d6d04da2c33ba151534f9,
         type: 3}
       propertyPath: m_Materials.Array.data[0]

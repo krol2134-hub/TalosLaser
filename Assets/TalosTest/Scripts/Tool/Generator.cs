@@ -3,13 +3,16 @@ using UnityEngine;
 
 namespace TalosTest.Tool
 {
-    public class Generator : MonoBehaviour, IGenerator, IConnectionPoint
+    public class Generator : LaserInteractable, IGenerator
     {
         [SerializeField] private Transform laserPoint;
+        [SerializeField] private Color laserColor;
         
-        public string GetConnectText()
+        public Color LaserColor => laserColor;
+
+        public override bool CanConnectLaser()
         {
-            return "Connect";
+            return false;
         }
 
         public void Connect(Interactor interactor)
@@ -17,14 +20,9 @@ namespace TalosTest.Tool
             throw new System.NotImplementedException();
         }
 
-        public string GetSelectText()
+        public string GetConnectText()
         {
-            return "Select";
-        }
-
-        public Transform GetPoint()
-        {
-            return laserPoint;
+            return "Connect";
         }
     }
 }
