@@ -23,7 +23,7 @@ namespace TalosTest.Tool
             {
                 foreach (var source in generator.InputSources)
                 {
-                    Debug.DrawLine(generator.transform.position, source.transform.position, generator.LaserColor);
+                    Debug.DrawLine(generator.LaserPoint, source.LaserPoint, generator.LaserColor);
                     LaserProcess(source, generator.LaserColor);
                 }
             }
@@ -65,7 +65,7 @@ namespace TalosTest.Tool
                     continue;
                 }
                 
-                Debug.DrawLine(current.transform.position, target.transform.position, currentColor);
+                Debug.DrawLine(current.LaserPoint, target.LaserPoint, currentColor);
                 _checkedInteractables.Add(target);
                 _checkQueue.Enqueue((target, currentColor));
             }

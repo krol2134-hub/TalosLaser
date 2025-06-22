@@ -5,11 +5,14 @@ namespace TalosTest.Tool
 {
     public abstract class LaserInteractable : MonoBehaviour
     {
+        [SerializeField] private Transform laserPoint;
+        
         private readonly List<LaserInteractable> _outputConnections = new();
         private readonly List<LaserInteractable> _inputConnections = new();
 
         public IReadOnlyList<LaserInteractable> ConnectedTargets => _outputConnections.AsReadOnly();
         public IReadOnlyList<LaserInteractable> InputSources => _inputConnections.AsReadOnly();
+        public Vector3 LaserPoint => laserPoint.position;
 
         public virtual void Reset()
         {

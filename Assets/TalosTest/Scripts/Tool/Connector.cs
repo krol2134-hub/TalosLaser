@@ -1,12 +1,9 @@
 ﻿using TalosTest.Character;
-using UnityEngine;
 
 namespace TalosTest.Tool
 {
     public class Connector : MovableTool
     {
-        [SerializeField] private Transform laserPoint;
-
         public override void PickUp(Interactor interactor)
         {
             base.PickUp(interactor);
