@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace TalosTest.Tool
 {
-    public class ToolConnector : MovableTool, IConnectionPoint
+    public class Connector : MovableTool, IConnectionPoint
     {
         [SerializeField] private Transform laserPoint;
         

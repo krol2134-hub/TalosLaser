@@ -2,7 +2,7 @@
 
 namespace TalosTest.Tool
 {
-    public class ToolReceiver : MonoBehaviour, IConnectionPoint
+    public class Receiver : MonoBehaviour, IConnectionPoint
     {
         [SerializeField] private Transform laserPoint;
         
