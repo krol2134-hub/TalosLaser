@@ -10,6 +10,8 @@ namespace TalosTest.Tool
         
         public bool IsActivate { get; private set; }
 
+        public event Action OnStateChanged;
+
         private void Awake()
         {
             activateEffect.SetActive(IsActivate);
@@ -30,12 +32,18 @@ namespace TalosTest.Tool
         private void UpdateActivationState()
         {
             var isActivate = InputLaserColors.Contains(targetColor);
-            if (IsActivate != isActivate)
-            {
-                IsActivate = isActivate;
 
-                activateEffect.SetActive(isActivate);
+            var isSameState = IsActivate == isActivate;
+            if (isSameState)
+            {
+                return;
             }
+            
+            IsActivate = isActivate;
+
+            activateEffect.SetActive(isActivate);
+                
+            OnStateChanged?.Invoke();
         }
     }
 }
