@@ -10,22 +10,43 @@ namespace TalosTest.Tool
         private readonly Queue<(LaserInteractable, Color)> _checkQueue = new();
         
         private Generator[] _generators;
+        private Receiver[] _receivers;
+        private Connector[] _connectors;
 
         private void Awake()
         {
             //TODO Need optimize
             _generators = FindObjectsOfType<Generator>();
+            _receivers = FindObjectsOfType<Receiver>();
+            _connectors = FindObjectsOfType<Connector>();
         }
 
         private void Update()
         {
+            ResetAll();
+
             foreach (var generator in _generators)
             {
-                foreach (var source in generator.InputSources)
+                foreach (var source in generator.InputConnections)
                 {
                     Debug.DrawLine(generator.LaserPoint, source.LaserPoint, generator.LaserColor);
                     LaserProcess(source, generator.LaserColor);
                 }
+            }
+        }
+
+        private void ResetAll()
+        {
+            ResetInteractables(_generators);
+            ResetInteractables(_receivers);
+            ResetInteractables(_connectors);
+        }
+
+        private void ResetInteractables(IReadOnlyCollection<LaserInteractable> laserInteractables)
+        {
+            foreach (var laserInteractable in laserInteractables)
+            {
+                laserInteractable.Reset();
             }
         }
         
@@ -41,10 +62,10 @@ namespace TalosTest.Tool
             {
                 var (current, currentColor) = _checkQueue.Dequeue();
                 
-                var targets = current.ConnectedTargets;
+                var targets = current.OutputConnections;
                 UpdateInteractables(current, currentColor, targets);
 
-                var sources = current.InputSources;
+                var sources = current.InputConnections;
                 UpdateInteractables(current, currentColor, sources);
             }
         }
@@ -66,6 +87,7 @@ namespace TalosTest.Tool
                 }
                 
                 Debug.DrawLine(current.LaserPoint, target.LaserPoint, currentColor);
+                target.AddInputLaser(currentColor);
                 _checkedInteractables.Add(target);
                 _checkQueue.Enqueue((target, currentColor));
             }
