@@ -9,16 +9,22 @@ namespace TalosTest.Tool
         
         private readonly List<LaserInteractable> _outputConnections = new();
         private readonly List<LaserInteractable> _inputConnections = new();
-
-        public IReadOnlyList<LaserInteractable> ConnectedTargets => _outputConnections.AsReadOnly();
-        public IReadOnlyList<LaserInteractable> InputSources => _inputConnections.AsReadOnly();
+        protected readonly List<Color> InputLaserColors = new();
+        
+        public IReadOnlyList<LaserInteractable> OutputConnections => _outputConnections.AsReadOnly();
+        public IReadOnlyList<LaserInteractable> InputConnections => _inputConnections.AsReadOnly();
         public Vector3 LaserPoint => laserPoint.position;
 
         public virtual void Reset()
         {
-            _inputConnections.Clear();
+            InputLaserColors.Clear();
         }
 
+        public virtual void AddInputLaser(Color color)
+        {
+            InputLaserColors.Add(color);
+        }
+        
         public abstract bool CanConnectLaser();
 
         protected void ClearConnections()
