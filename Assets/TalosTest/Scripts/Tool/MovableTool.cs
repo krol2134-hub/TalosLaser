@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace TalosTest.Tool
 {
-    public abstract class MovableTool : MonoBehaviour, ITool
+    public abstract class MovableTool : LaserInteractable, ITool
     {
         [SerializeField] private GameObject placedTool;
         [SerializeField] private BoxCollider placedToolCollider;
