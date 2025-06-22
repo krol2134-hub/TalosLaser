@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace TalosTest.Tool
 {
-    public class ToolGenerator : MonoBehaviour, IGenerator, IConnectionPoint
+    public class Generator : MonoBehaviour, IGenerator, IConnectionPoint
     {
         [SerializeField] private Transform laserPoint;
         
