@@ -5,7 +5,6 @@ namespace TalosTest.Tool
 {
     public class Generator : LaserInteractable, IGenerator
     {
-        [SerializeField] private Transform laserPoint;
         [SerializeField] private Color laserColor;
         
         public Color LaserColor => laserColor;
