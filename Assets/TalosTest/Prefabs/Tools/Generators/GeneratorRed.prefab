@@ -30,6 +30,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1487552112929107333, guid: e060811d1b6d6d04da2c33ba151534f9,
         type: 3}
+      propertyPath: laserColor
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1487552112929107333, guid: e060811d1b6d6d04da2c33ba151534f9,
+        type: 3}
       propertyPath: laserEffect
       value: 
       objectReference: {fileID: 4258457213994286587, guid: c302e177143b15f48b17bda7d2115a84,

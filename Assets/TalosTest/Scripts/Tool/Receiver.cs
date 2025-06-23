@@ -5,7 +5,7 @@ namespace TalosTest.Tool
 {
     public class Receiver : LaserInteractable
     {
-        [SerializeField] private Color targetColor = Color.red;
+        [SerializeField] private ColorType targetColor;
         [SerializeField] private GameObject activateEffect;
         
         public bool IsActivate { get; private set; }
@@ -22,7 +22,7 @@ namespace TalosTest.Tool
             return true;
         }
 
-        public override void AddInputLaser(Color color)
+        public override void AddInputLaser(ColorType color)
         {
             base.AddInputLaser(color);
 
