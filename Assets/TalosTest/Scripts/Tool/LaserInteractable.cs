@@ -14,6 +14,7 @@ namespace TalosTest.Tool
         public IReadOnlyList<LaserInteractable> OutputConnections => _outputConnections.AsReadOnly();
         public IReadOnlyList<LaserInteractable> InputConnections => _inputConnections.AsReadOnly();
         public Vector3 LaserPoint => laserPoint.position;
+        public Transform LaserTransform => laserPoint;
 
         public virtual void Reset()
         {

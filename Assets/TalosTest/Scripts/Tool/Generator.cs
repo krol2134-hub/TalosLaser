@@ -1,4 +1,5 @@
 ﻿using TalosTest.Character;
+using TalosTest.Visuals;
 using UnityEngine;
 
 namespace TalosTest.Tool
@@ -6,8 +7,10 @@ namespace TalosTest.Tool
     public class Generator : LaserInteractable, IGenerator
     {
         [SerializeField] private Color laserColor;
+        [SerializeField] private LaserEffect laserEffectEffectPrefab;
         
         public Color LaserColor => laserColor;
+        public LaserEffect LaserEffectEffectPrefab => laserEffectEffectPrefab;
 
         public override bool CanConnectLaser()
         {
