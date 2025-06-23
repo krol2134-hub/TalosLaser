@@ -45,8 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25b24d6a3e6f46f69bc980d564d46637, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  MaxLength: 30
-  lineRenderer: {fileID: 0}
+  defaultLength: 30
 --- !u!120 &6769164827980403237
 LineRenderer:
   serializedVersion: 2
@@ -157,6 +156,6 @@ LineRenderer:
     shadowBias: 0
     generateLightingData: 0
   m_MaskInteraction: 0
-  m_UseWorldSpace: 0
+  m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 0
