@@ -55,6 +55,12 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 4258457213994286587, guid: c302e177143b15f48b17bda7d2115a84,
         type: 3}
+    - target: {fileID: 1487552112929107333, guid: e060811d1b6d6d04da2c33ba151534f9,
+        type: 3}
+      propertyPath: laserEffectEffectPrefab
+      value: 
+      objectReference: {fileID: 4258457213994286587, guid: c302e177143b15f48b17bda7d2115a84,
+        type: 3}
     - target: {fileID: 4050370919612051393, guid: e060811d1b6d6d04da2c33ba151534f9,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
