@@ -31,7 +31,7 @@ namespace TalosTest.Tool
         {
             foreach (var target in _outputConnections)
             {
-                target.RemoveInputSource(this);
+                target.RemoveInputConnection(this);
             }
 
             for (var index = _inputConnections.Count - 1; index >= 0; index--)
@@ -55,7 +55,7 @@ namespace TalosTest.Tool
             target.AddInputSource(this);
         }
 
-        private void RemoveOutputConnection(LaserInteractable target)
+        protected virtual void RemoveOutputConnection(LaserInteractable target)
         {
             if (!_outputConnections.Contains(target))
             {
@@ -63,7 +63,7 @@ namespace TalosTest.Tool
             }
             
             _outputConnections.Remove(target);
-            target.RemoveInputSource(this);
+            target.RemoveInputConnection(this);
         }
 
         private void AddInputSource(LaserInteractable source)
@@ -74,9 +74,9 @@ namespace TalosTest.Tool
             }
         }
 
-        private void RemoveInputSource(LaserInteractable source)
+        protected virtual void RemoveInputConnection(LaserInteractable inputInteractable)
         {
-            _inputConnections.Remove(source);
+            _inputConnections.Remove(inputInteractable);
         }
 
         public string GetSelectText()
