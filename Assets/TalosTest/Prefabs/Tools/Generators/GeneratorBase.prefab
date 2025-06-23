@@ -49,7 +49,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   laserPoint: {fileID: 7907244543225565540}
   laserColor: {r: 0, g: 0, b: 0, a: 0}
-  laserEffectPrefab: {fileID: 4258457213994286587, guid: 91fd96e5b3d90d2459569fb26540c0ae,
+  laserEffectEffectPrefab: {fileID: 4258457213994286587, guid: 91fd96e5b3d90d2459569fb26540c0ae,
     type: 3}
 --- !u!65 &4021790384238600269
 BoxCollider:
