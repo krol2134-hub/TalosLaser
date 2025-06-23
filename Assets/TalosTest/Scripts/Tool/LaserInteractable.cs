@@ -9,7 +9,7 @@ namespace TalosTest.Tool
         
         private readonly List<LaserInteractable> _outputConnections = new();
         private readonly List<LaserInteractable> _inputConnections = new();
-        protected readonly List<Color> InputLaserColors = new();
+        protected readonly List<ColorType> InputLaserColors = new();
         
         public IReadOnlyList<LaserInteractable> OutputConnections => _outputConnections.AsReadOnly();
         public IReadOnlyList<LaserInteractable> InputConnections => _inputConnections.AsReadOnly();
@@ -21,7 +21,7 @@ namespace TalosTest.Tool
             InputLaserColors.Clear();
         }
 
-        public virtual void AddInputLaser(Color color)
+        public virtual void AddInputLaser(ColorType color)
         {
             InputLaserColors.Add(color);
         }

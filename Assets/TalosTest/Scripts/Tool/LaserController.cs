@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using TalosTest.Visuals;
 using UnityEngine;
@@ -9,7 +8,7 @@ namespace TalosTest.Tool
     public class LaserController : MonoBehaviour
     {
         private readonly HashSet<LaserInteractable> _checkedInteractables = new();
-        private readonly Queue<(LaserInteractable, Color)> _checkQueue = new();
+        private readonly Queue<(LaserInteractable, ColorType)> _checkQueue = new();
 
         private readonly Dictionary<Generator, Dictionary<LaserInteractable, LaserEffect>> _lasersByGenerators = new();
         private readonly List<LaserEffect> _useLasers = new();
@@ -130,7 +129,7 @@ namespace TalosTest.Tool
             }
         }
 
-        private void LaserProcess(LaserInteractable startInteractable, LaserEffect laserEffect, Color color)
+        private void LaserProcess(LaserInteractable startInteractable, LaserEffect laserEffect, ColorType color)
         {
             _checkedInteractables.Clear();
             _checkQueue.Clear();
@@ -150,7 +149,7 @@ namespace TalosTest.Tool
             }
         }
 
-        private void UpdateInteractables(LaserEffect laserEffect, Color currentColor, IReadOnlyList<LaserInteractable> interactables)
+        private void UpdateInteractables(LaserEffect laserEffect, ColorType currentColor, IReadOnlyList<LaserInteractable> interactables)
         {
             foreach (var target in interactables)
             {

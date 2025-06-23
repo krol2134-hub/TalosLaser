@@ -6,10 +6,10 @@ namespace TalosTest.Tool
 {
     public class Generator : LaserInteractable, IGenerator
     {
-        [SerializeField] private Color laserColor;
+        [SerializeField] private ColorType laserColor;
         [SerializeField] private LaserEffect laserEffectEffectPrefab;
         
-        public Color LaserColor => laserColor;
+        public ColorType LaserColor => laserColor;
         public LaserEffect LaserEffectEffectPrefab => laserEffectEffectPrefab;
 
         public override bool CanConnectLaser()
