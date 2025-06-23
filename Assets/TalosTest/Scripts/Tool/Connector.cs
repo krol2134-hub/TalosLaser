@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TalosTest.Character;
 using TalosTest.Visuals;
 using UnityEngine;
@@ -10,6 +11,9 @@ namespace TalosTest.Tool
         [SerializeField] private LaserPathEffect laserPathEffectPrefab;
         
         private readonly Dictionary<LaserInteractable, LaserPathEffect> _spawnedLaserPathEffects = new();
+
+        public Action<Connector> OnPickUp;
+        public Action<Connector> OnDrop;
         
         public override void PickUp(Interactor interactor)
         {
@@ -17,6 +21,8 @@ namespace TalosTest.Tool
             
             ClearConnections();
             DespawnLasers();
+
+            OnPickUp?.Invoke(this);
         }
 
         public override void Drop(Interactor interactor)
@@ -28,6 +34,8 @@ namespace TalosTest.Tool
                 AddOutputConnection(laserInteractable);
                 DisplayLaserPath(laserInteractable);
             }
+            
+            OnDrop?.Invoke(this);
         }
 
         private void DisplayLaserPath(LaserInteractable targetInteractable)

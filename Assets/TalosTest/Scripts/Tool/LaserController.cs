@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TalosTest.Visuals;
 using UnityEngine;
@@ -26,6 +27,29 @@ namespace TalosTest.Tool
             _connectors = FindObjectsOfType<Connector>();
         }
 
+        private void OnEnable()
+        {
+            foreach (var connector in _connectors)
+            {
+                connector.OnPickUp += OnPickUp;
+                connector.OnDrop += OnPickUp;
+            }
+        }
+        
+        private void OnDisable()
+        {
+            foreach (var connector in _connectors)
+            {
+                connector.OnPickUp -= OnPickUp;
+                connector.OnDrop -= OnPickUp;
+            }
+        }
+
+        private void OnPickUp(Connector obj)
+        {
+            GeneratorLasersUpdate();
+        }
+
         private void Start()
         {
             foreach (var generator in _generators)
@@ -34,29 +58,10 @@ namespace TalosTest.Tool
             }
         }
 
-        private void Update()
-        {
-            ResetAll();
-            GeneratorLasersUpdate();
-        }
-
-        private void ResetAll()
-        {
-            ResetInteractables(_generators);
-            ResetInteractables(_receivers);
-            ResetInteractables(_connectors);
-        }
-
-        private void ResetInteractables(IReadOnlyCollection<LaserInteractable> laserInteractables)
-        {
-            foreach (var laserInteractable in laserInteractables)
-            {
-                laserInteractable.Reset();
-            }
-        }
-
         private void GeneratorLasersUpdate()
         {
+            ResetAll();
+
             foreach (var generator in _generators)
             {
                 _useLasers.Clear();
@@ -80,6 +85,21 @@ namespace TalosTest.Tool
                 }
 
                 ClearLaserEffects(lasersByInteractables);
+            }
+        }
+
+        private void ResetAll()
+        {
+            ResetInteractables(_generators);
+            ResetInteractables(_receivers);
+            ResetInteractables(_connectors);
+        }
+
+        private void ResetInteractables(IReadOnlyCollection<LaserInteractable> laserInteractables)
+        {
+            foreach (var laserInteractable in laserInteractables)
+            {
+                laserInteractable.Reset();
             }
         }
 
