@@ -8,18 +8,19 @@ namespace TalosTest.Tool
     //TODO Need optimize: Replace FindObjectsOfType, Use event for process lasers instead Update
     public class LaserController : MonoBehaviour
     {
-        private const float GizmosTime = 0f;
+        [SerializeField] private LaserEffectPool laserEffectPool;
+        [SerializeField] private float gizmosTime = 0f;
         
         private readonly HashSet<LaserInteractable> _checkedInteractablesBuffer = new();
         private readonly Queue<(LaserInteractable, ColorType)> _checkQueue = new();
         private readonly Dictionary<Generator, List<LaserInteractable>> _alreadyCheckedGeneratorInputs = new();
         private readonly Dictionary<LaserInteractable, LaserInteractable> _pathCameFromBuffer = new();
-
-        private readonly Dictionary<Generator, Dictionary<LaserInteractable, LaserEffect>> _lasersByGenerators = new();
-        private readonly List<LaserEffect> _useLasers = new();
-        private readonly List<LaserInteractable> _unusedLaserInteractable = new();
-        private readonly List<LaserInteractable> _pathBuffer = new ();
-
+        private readonly List<LaserInteractable> _pathBuffer = new();
+        
+        private readonly Dictionary<(Vector3 start, Vector3 end), LaserEffect> _activeLaserEffects = new();
+        private readonly List<(Vector3 start, Vector3 end)> _usedLasersBuffer = new();
+        private readonly List<(Vector3 start, Vector3 end)> _removeLasersBuffer = new();
+        
         private Generator[] _generators;
         private Receiver[] _receivers;
         private Connector[] _connectors;
@@ -58,14 +59,6 @@ namespace TalosTest.Tool
             }
         }
 
-        private void Start()
-        {
-            foreach (var generator in _generators)
-            {
-                _lasersByGenerators.TryAdd(generator, new Dictionary<LaserInteractable, LaserEffect>());
-            }
-        }
-
         private void Update()
         {
             UpdateGeneratorLasers();
@@ -79,7 +72,8 @@ namespace TalosTest.Tool
         private void UpdateGeneratorLasers()
         {
             ResetAll();
-
+            _usedLasersBuffer.Clear();
+            
             foreach (var checkedGeneratorInputs in _alreadyCheckedGeneratorInputs.Values)
             {
                 checkedGeneratorInputs.Clear();
@@ -89,6 +83,8 @@ namespace TalosTest.Tool
             {
                 UpdateGeneratorLaserInput(generator);
             }
+
+            ClearLaserEffects();
         }
 
         private void ResetAll()
@@ -100,10 +96,6 @@ namespace TalosTest.Tool
 
         private void UpdateGeneratorLaserInput(Generator generator)
         {
-            _useLasers.Clear();
-            _unusedLaserInteractable.Clear();
-                
-            var lasersByInteractables = _lasersByGenerators[generator];
             foreach (var sourceInput in generator.InputConnections)
             {
                 var inputConnectionsToSkip = _alreadyCheckedGeneratorInputs[generator];
@@ -123,15 +115,13 @@ namespace TalosTest.Tool
                 //TODO Refactor for use many conflicts generators
                 if (conflictGenerator != null)
                 {
-                    GenerateConflictLaser(generator, conflictGenerator, sourceInput, conflictInput, lasersByInteractables);
+                    GenerateConflictLaser(generator, conflictGenerator, sourceInput, conflictInput);
                 }
                 else
                 {
-                    GenerateLaser(lasersByInteractables, generator, sourceInput, null);
+                    GenerateLaser(generator, sourceInput, null);
                 }
             }
-
-            ClearLaserEffects(lasersByInteractables);
         }
 
         private void CheckConflictGeneratorInPath(Generator startGenerator, LaserInteractable startInteractable, 
@@ -182,8 +172,7 @@ namespace TalosTest.Tool
             }
         }
 
-        private void GenerateConflictLaser(Generator generator, Generator conflictGenerator, LaserInteractable sourceInput, LaserInteractable conflictInput,
-            Dictionary<LaserInteractable, LaserEffect> lasersByInteractables)
+        private void GenerateConflictLaser(Generator generator, Generator conflictGenerator, LaserInteractable sourceInput, LaserInteractable conflictInput)
         {
             if (_alreadyCheckedGeneratorInputs.TryGetValue(conflictGenerator, out var inputsToSkip))
             {
@@ -202,10 +191,10 @@ namespace TalosTest.Tool
                 var index = pathInteractables.Count / 2;
                 var midConnector = pathInteractables[index];
 
-                GenerateLaser(lasersByInteractables, generator, sourceInput, midConnector);
-                GenerateLaser(lasersByInteractables, conflictGenerator, conflictInput, midConnector);
+                GenerateLaser(generator, sourceInput, midConnector);
+                GenerateLaser(conflictGenerator, conflictInput, midConnector);
                 
-                Debug.DrawLine(midConnector.LaserPoint, midConnector.LaserPoint + Vector3.up * 10f, Color.black, GizmosTime);
+                Debug.DrawLine(midConnector.LaserPoint, midConnector.LaserPoint + Vector3.up * 10f, Color.black, gizmosTime);
             }
             else
             {
@@ -214,11 +203,11 @@ namespace TalosTest.Tool
                 var firstBlockConnector = pathInteractables[secondIndex];
                 var secondBlockConnector = pathInteractables[firstIndex];
 
-                GenerateLaser(lasersByInteractables, generator, sourceInput, firstBlockConnector);
-                GenerateLaser(lasersByInteractables, conflictGenerator, conflictInput, secondBlockConnector);
+                GenerateLaser(generator, sourceInput, firstBlockConnector);
+                GenerateLaser(conflictGenerator, conflictInput, secondBlockConnector);
                 
-                Debug.DrawLine(firstBlockConnector.LaserPoint, firstBlockConnector.LaserPoint + Vector3.up * 10f, Color.black, GizmosTime);
-                Debug.DrawLine(secondBlockConnector.LaserPoint, secondBlockConnector.LaserPoint + Vector3.up * 10f, Color.black, GizmosTime);
+                Debug.DrawLine(firstBlockConnector.LaserPoint, firstBlockConnector.LaserPoint + Vector3.up * 10f, Color.black, gizmosTime);
+                Debug.DrawLine(secondBlockConnector.LaserPoint, secondBlockConnector.LaserPoint + Vector3.up * 10f, Color.black, gizmosTime);
             }
         }
 
@@ -268,25 +257,14 @@ namespace TalosTest.Tool
             }
         }
 
-        private void GenerateLaser(Dictionary<LaserInteractable, LaserEffect> lasersByInteractables, Generator generator,
-            LaserInteractable source, LaserInteractable blockerInteractable)
+        private void GenerateLaser(Generator generator, LaserInteractable source, LaserInteractable blockerInteractable)
         {
             _checkedInteractablesBuffer.Clear();
             
-            if (!lasersByInteractables.TryGetValue(source, out var laser))
-            {
-                laser = CreateLaserEffect(generator, source);
+            DrawLaserEffect(generator.LaserColor, generator.LaserPoint, source.LaserPoint);
+            Debug.DrawLine(generator.LaserPoint, source.LaserPoint + LaserDebugOffset, generator.LaserColor == ColorType.Blue ? Color.blue :  Color.red, gizmosTime);
 
-                lasersByInteractables.Add(source, laser);
-            }
-
-            _useLasers.Add(laser);
-            laser.Clear();
-            laser.AddPoint(source.LaserPoint);
-            
-            Debug.DrawLine(generator.LaserPoint, source.LaserPoint + LaserDebugOffset, generator.LaserColor == ColorType.Blue ? Color.blue :  Color.red, GizmosTime);
-
-            LaserProcess(source, laser, generator.LaserColor, blockerInteractable);
+            LaserProcess(source, generator.LaserColor, blockerInteractable);
         }
 
 
@@ -298,34 +276,7 @@ namespace TalosTest.Tool
             }
         }
 
-        private static LaserEffect CreateLaserEffect(Generator generator, LaserInteractable source)
-        {
-            var laser = Instantiate(generator.LaserEffectEffectPrefab, generator.LaserPoint, Quaternion.identity,
-                generator.LaserTransform);
-            laser.transform.LookAt(source.LaserPoint);
-            return laser;
-        }
-
-        private void ClearLaserEffects(Dictionary<LaserInteractable, LaserEffect> lasersByInteractables)
-        {
-            foreach (var (interactable, laser) in lasersByInteractables)
-            {
-                if (!_useLasers.Contains(laser))
-                {
-                    _unusedLaserInteractable.Add(interactable);
-                }
-            }
-
-            foreach (var laserInteractable in _unusedLaserInteractable)
-            {
-                if (lasersByInteractables.Remove(laserInteractable, out var laser ))
-                {
-                    Destroy(laser.gameObject);
-                }
-            }
-        }
-
-        private void LaserProcess(LaserInteractable startInteractable, LaserEffect laserEffect, ColorType color, LaserInteractable blockerInteractable)
+        private void LaserProcess(LaserInteractable startInteractable, ColorType color, LaserInteractable blockerInteractable)
         {
             _checkedInteractablesBuffer.Clear();
 
@@ -342,14 +293,14 @@ namespace TalosTest.Tool
                 }
                 
                 var outputConnections = current.OutputConnections;
-                UpdateLaserConnections(current, outputConnections, currentColor, blockerInteractable, laserEffect);
+                UpdateLaserConnections(current, outputConnections, currentColor, blockerInteractable);
 
                 var inputConnections = current.InputConnections;
-                UpdateLaserConnections(current, inputConnections, currentColor, blockerInteractable, laserEffect);
+                UpdateLaserConnections(current, inputConnections, currentColor, blockerInteractable);
             }
         }
 
-        private void UpdateLaserConnections(LaserInteractable current, IReadOnlyList<LaserInteractable> connections, ColorType currentColor, LaserInteractable blockerInteractable, LaserEffect laserEffect)
+        private void UpdateLaserConnections(LaserInteractable current, IReadOnlyList<LaserInteractable> connections, ColorType currentColor, LaserInteractable blockerInteractable)
         {
             foreach (var target in connections)
             {
@@ -369,17 +320,17 @@ namespace TalosTest.Tool
                 {
                     if (_isMidBlocker)
                     {
-                        laserEffect.AddPoint(target.LaserPoint);
-                        
-                        Debug.DrawLine(current.LaserPoint, target.LaserPoint + LaserDebugOffset, currentColor == ColorType.Blue ? Color.blue : Color.red, GizmosTime);
+                        DrawLaserEffect(currentColor, current.LaserPoint, target.LaserPoint);
+                        Debug.DrawLine(current.LaserPoint, target.LaserPoint + LaserDebugOffset, currentColor == ColorType.Blue ? Color.blue : Color.red, gizmosTime);
                     }
                     else
                     {
                         var direction = target.LaserPoint - current.LaserPoint;
                         var distance = direction.magnitude / 2;
-                        laserEffect.AddPoint(current.LaserPoint + direction.normalized * distance);
-                        
-                        Debug.DrawRay(current.LaserPoint, direction.normalized * distance, currentColor == ColorType.Blue ? Color.blue : Color.red, GizmosTime);
+                        var targetPoint = current.LaserPoint + direction.normalized * distance;
+
+                        DrawLaserEffect(currentColor, current.LaserPoint, targetPoint);
+                        Debug.DrawRay(current.LaserPoint, direction.normalized * distance, currentColor == ColorType.Blue ? Color.blue : Color.red, gizmosTime);
                     }
                     
                     target.AddInputLaser(currentColor);
@@ -388,12 +339,55 @@ namespace TalosTest.Tool
                     continue;
                 }
 
-                laserEffect.AddPoint(target.LaserPoint);
                 target.AddInputLaser(currentColor);
-                Debug.DrawLine(current.LaserPoint, target.LaserPoint + LaserDebugOffset, currentColor == ColorType.Blue ? Color.blue : Color.red, GizmosTime);
+
+                DrawLaserEffect(currentColor, current.LaserPoint, target.LaserPoint);
+                Debug.DrawLine(current.LaserPoint, target.LaserPoint + LaserDebugOffset, currentColor == ColorType.Blue ? Color.blue : Color.red, gizmosTime);
 
                 _checkedInteractablesBuffer.Add(target);
                 _checkQueue.Enqueue((target, currentColor));
+            }
+        }
+
+        private void DrawLaserEffect(ColorType currentColor, Vector3 startPoint, Vector3 targetPoint)
+        {
+            var startTargetPoint = (startPoint, targetPoint);
+
+            if (_activeLaserEffects.TryGetValue(startTargetPoint, out var laserEffect))
+            {
+                UpdateLaserEffect(laserEffect, startPoint, targetPoint);
+            }
+            else
+            {
+                laserEffect = laserEffectPool.Get(currentColor, startPoint, targetPoint);
+                UpdateLaserEffect(laserEffect, startPoint, targetPoint);
+                _activeLaserEffects.Add(startTargetPoint, laserEffect);
+            }
+
+            _usedLasersBuffer.Add(startTargetPoint);
+        }
+
+        private void UpdateLaserEffect(LaserEffect laserEffect, Vector3 startPoint, Vector3 targetPoint)
+        {
+            laserEffect.transform.position = startPoint;
+            laserEffect.transform.LookAt(targetPoint);
+        }
+        
+        private void ClearLaserEffects()
+        {
+            _removeLasersBuffer.Clear();
+            foreach (var activeLaserEffect in _activeLaserEffects)
+            {
+                if (!_usedLasersBuffer.Contains(activeLaserEffect.Key))
+                {
+                    laserEffectPool.Release(activeLaserEffect.Value);
+                    _removeLasersBuffer.Add(activeLaserEffect.Key);
+                }
+            }
+
+            foreach (var key in _removeLasersBuffer)
+            {
+                _activeLaserEffects.Remove(key);
             }
         }
     }

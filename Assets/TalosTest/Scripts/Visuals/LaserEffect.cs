@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TalosTest.Tool;
+using UnityEngine;
 
 namespace TalosTest.Visuals
 {
@@ -12,32 +13,39 @@ namespace TalosTest.Visuals
 
         private static readonly int MainTex = Shader.PropertyToID("_MainTex");
         private static readonly int Noise = Shader.PropertyToID("_Noise");
-        
-        private LineRenderer _lineRenderer;
 
         private Vector4 _length = new(1, 1, 1, 1);
 
+        public LineRenderer LineRenderer { get; private set; }
+
+        public ColorType ColorType { get; private set; }
+
         private void Awake()
         {
-            _lineRenderer = GetComponent<LineRenderer>();
+            LineRenderer = GetComponent<LineRenderer>();
         }
 
         private void Start()
         {
-            _lineRenderer.material.SetTextureScale(MainTex, new Vector2(_length[0], _length[1]));
-            _lineRenderer.material.SetTextureScale(Noise, new Vector2(_length[2], _length[3]));
+            LineRenderer.material.SetTextureScale(MainTex, new Vector2(_length[0], _length[1]));
+            LineRenderer.material.SetTextureScale(Noise, new Vector2(_length[2], _length[3]));
+        }
+
+        public void Setup(ColorType colorType)
+        {
+            ColorType = colorType;
         }
 
         public void Clear()
         {
-            _lineRenderer.positionCount = 1;
-            _lineRenderer.SetPosition(0, transform.position);
+            LineRenderer.positionCount = 1;
+            LineRenderer.SetPosition(0, transform.position);
         }
 
         public void AddPoint(Vector3 point)
         {
-            _lineRenderer.positionCount++;
-            _lineRenderer.SetPosition(_lineRenderer.positionCount - 1, point);
+            LineRenderer.positionCount++;
+            LineRenderer.SetPosition(LineRenderer.positionCount - 1, point);
         }
     }
 }
