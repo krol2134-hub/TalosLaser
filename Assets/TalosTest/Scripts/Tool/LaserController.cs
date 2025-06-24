@@ -10,7 +10,8 @@ namespace TalosTest.Tool
     {
         [SerializeField] private LaserEffectPool laserEffectPool;
         [SerializeField] private float gizmosTime = 0f;
-        
+        [SerializeField] private LayerMask obstacleMask;
+
         private readonly HashSet<LaserInteractable> _checkedInteractablesBuffer = new();
         private readonly Queue<(LaserInteractable, ColorType)> _checkQueue = new();
         private readonly Dictionary<Generator, List<LaserInteractable>> _alreadyCheckedGeneratorInputs = new();
@@ -178,37 +179,64 @@ namespace TalosTest.Tool
             {
                 inputsToSkip.Add(conflictInput);
             }
-            
+
             var pathInteractables = FindShortestPathBetweenGenerators(generator, conflictGenerator);
             if (pathInteractables == null || pathInteractables.Count == 0)
             {
                 return;
             }
-                
+
+            var isHitPhysicalBlocker = CheckPhysicalHitBlockerPath(generator, pathInteractables);
+
             _isMidBlocker = pathInteractables.Count % 2 != 0;
             if (_isMidBlocker)
             {
                 var index = pathInteractables.Count / 2;
-                var midConnector = pathInteractables[index];
-
+                var midConnector = isHitPhysicalBlocker ? null : pathInteractables[index];
+                
                 GenerateLaser(generator, sourceInput, midConnector);
                 GenerateLaser(conflictGenerator, conflictInput, midConnector);
-                
-                Debug.DrawLine(midConnector.LaserPoint, midConnector.LaserPoint + Vector3.up * 10f, Color.black, gizmosTime);
             }
             else
             {
                 var firstIndex = pathInteractables.Count / 2 - 1;
                 var secondIndex = firstIndex + 1;
-                var firstBlockConnector = pathInteractables[secondIndex];
-                var secondBlockConnector = pathInteractables[firstIndex];
+                var firstBlockConnector = isHitPhysicalBlocker ? null : pathInteractables[secondIndex];
+                var secondBlockConnector = isHitPhysicalBlocker ? null : pathInteractables[firstIndex];
 
-                GenerateLaser(generator, sourceInput, firstBlockConnector);
-                GenerateLaser(conflictGenerator, conflictInput, secondBlockConnector);
-                
-                Debug.DrawLine(firstBlockConnector.LaserPoint, firstBlockConnector.LaserPoint + Vector3.up * 10f, Color.black, gizmosTime);
-                Debug.DrawLine(secondBlockConnector.LaserPoint, secondBlockConnector.LaserPoint + Vector3.up * 10f, Color.black, gizmosTime);
+                GenerateLaser(generator, sourceInput, isHitPhysicalBlocker ? null : firstBlockConnector);
+                GenerateLaser(conflictGenerator, conflictInput, isHitPhysicalBlocker ? null : secondBlockConnector);
             }
+        }
+
+        private bool CheckPhysicalHitBlockerPath(Generator startGenerator, List<LaserInteractable> pathInteractables)
+        {
+            var isHitPhysicalBlocker = false;
+            for (var index = 0; index < pathInteractables.Count; index++)
+            {
+                if (index == pathInteractables.Count - 1)
+                {
+                    continue;
+                }
+                
+                var pathInteractable = pathInteractables[index];
+                var nextPathInteractable = pathInteractables[index + 1];
+
+                if (IsLaserBlocked(startGenerator.LaserColor, pathInteractable.LaserPoint, nextPathInteractable.LaserPoint,
+                        out var blockerPoint))
+                {
+                    isHitPhysicalBlocker = true;
+                    Debug.DrawLine(pathInteractable.LaserPoint, blockerPoint, Color.green,
+                        gizmosTime);
+                    
+                    break;
+                }
+                
+                Debug.DrawLine(pathInteractable.LaserPoint, nextPathInteractable.LaserPoint, Color.green,
+                    gizmosTime);
+            }
+
+            return isHitPhysicalBlocker;
         }
 
         private List<LaserInteractable> FindShortestPathBetweenGenerators(LaserInteractable start, LaserInteractable target)
@@ -249,24 +277,30 @@ namespace TalosTest.Tool
         {
             foreach (var connection in connections)
             {
-                if (_checkedInteractablesBuffer.Add(connection))
+                if (_checkedInteractablesBuffer.Contains(connection))
                 {
-                    _pathCameFromBuffer[connection] = current;
-                    _checkQueue.Enqueue((connection, default));
+                    continue;
                 }
+                    
+                _checkedInteractablesBuffer.Add(connection);
+                _pathCameFromBuffer[connection] = current;
+                _checkQueue.Enqueue((connection, default));
             }
         }
 
-        private void GenerateLaser(Generator generator, LaserInteractable source, LaserInteractable blockerInteractable)
+        private void GenerateLaser(Generator generator, LaserInteractable source, LaserInteractable blockerInteractable, Vector3? physicalBlockerPoint = null)
         {
             _checkedInteractablesBuffer.Clear();
             
+            if (IsLaserBlocked(generator.LaserColor, generator.LaserPoint, source.LaserPoint, out var hitPoint))
+            {
+                DrawLaserEffect(generator.LaserColor, generator.LaserPoint, hitPoint);
+                return;
+            }
+            
             DrawLaserEffect(generator.LaserColor, generator.LaserPoint, source.LaserPoint);
-            Debug.DrawLine(generator.LaserPoint, source.LaserPoint + LaserDebugOffset, generator.LaserColor == ColorType.Blue ? Color.blue :  Color.red, gizmosTime);
-
             LaserProcess(source, generator.LaserColor, blockerInteractable);
         }
-
 
         private void ResetInteractables(IReadOnlyCollection<LaserInteractable> laserInteractables)
         {
@@ -300,13 +334,20 @@ namespace TalosTest.Tool
             }
         }
 
-        private void UpdateLaserConnections(LaserInteractable current, IReadOnlyList<LaserInteractable> connections, ColorType currentColor, LaserInteractable blockerInteractable)
+        private void UpdateLaserConnections(LaserInteractable current, IReadOnlyList<LaserInteractable> connections, ColorType currentColor,
+            LaserInteractable blockerInteractable)
         {
             foreach (var target in connections)
             {
                 var isChecked = _checkedInteractablesBuffer.Contains(target);
                 if (isChecked)
                 {
+                    continue;
+                }
+                
+                if (IsLaserBlocked(currentColor, current.LaserPoint, target.LaserPoint, out var hitPoint))
+                {
+                    DrawLaserEffect(currentColor, current.LaserPoint, hitPoint);
                     continue;
                 }
 
@@ -325,12 +366,7 @@ namespace TalosTest.Tool
                     }
                     else
                     {
-                        var direction = target.LaserPoint - current.LaserPoint;
-                        var distance = direction.magnitude / 2;
-                        var targetPoint = current.LaserPoint + direction.normalized * distance;
-
-                        DrawLaserEffect(currentColor, current.LaserPoint, targetPoint);
-                        Debug.DrawRay(current.LaserPoint, direction.normalized * distance, currentColor == ColorType.Blue ? Color.blue : Color.red, gizmosTime);
+                        DrawHalfBrokenLaserEffect(currentColor, current, target);
                     }
                     
                     target.AddInputLaser(currentColor);
@@ -349,8 +385,31 @@ namespace TalosTest.Tool
             }
         }
 
+        private bool IsLaserBlocked(ColorType colorType, Vector3 start, Vector3 end, out Vector3 hitPoint)
+        {
+            if (Physics.Linecast(start, end, out RaycastHit hit, obstacleMask))
+            {
+                hitPoint = hit.point;
+                return true;
+            }
+
+            hitPoint = Vector3.zero;
+            return false;
+        }
+
+        private void DrawHalfBrokenLaserEffect(ColorType currentColor, LaserInteractable current, LaserInteractable target)
+        {
+            var direction = target.LaserPoint - current.LaserPoint;
+            var distance = direction.magnitude / 2;
+            var targetPoint = current.LaserPoint + direction.normalized * distance;
+
+            DrawLaserEffect(currentColor, current.LaserPoint, targetPoint);
+        }
+
         private void DrawLaserEffect(ColorType currentColor, Vector3 startPoint, Vector3 targetPoint)
         {
+            Debug.DrawLine(startPoint, targetPoint + LaserDebugOffset, currentColor == ColorType.Blue ? Color.blue : Color.red, gizmosTime);
+            
             var startTargetPoint = (startPoint, targetPoint);
 
             if (_activeLaserEffects.TryGetValue(startTargetPoint, out var laserEffect))
