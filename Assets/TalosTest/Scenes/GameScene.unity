@@ -5764,6 +5764,7 @@ GameObject:
   m_Component:
   - component: {fileID: 836609889}
   - component: {fileID: 836609890}
+  - component: {fileID: 836609891}
   m_Layer: 0
   m_Name: LaserController
   m_TagString: Untagged
@@ -5799,6 +5800,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   laserEffectPool: {fileID: 956784808}
+  gizmosTime: 0
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 65
+--- !u!114 &836609891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 836609888}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625988c36f7349a5a9031923e4fe5a42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  laserEffectPool: {fileID: 956784808}
+  gizmosTime: 0
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 65
 --- !u!43 &855922520
 Mesh:
   m_ObjectHideFlags: 0
