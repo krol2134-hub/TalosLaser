@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace TalosTest.Tool
@@ -122,7 +121,8 @@ namespace TalosTest.Tool
             }
 
             var blockedSegmentInfos = MathematicsHelper.GetLaserSegmentBlockers(allSegments);
-
+            CheckPhysicalBlockers(allSegments, blockedSegmentInfos);
+            
             foreach (var (generator, paths) in _segmentsbyGenerator)
             {
                 foreach (var segments in paths)
@@ -154,6 +154,35 @@ namespace TalosTest.Tool
         {
             target.AddInputColor(currentColor);
             _currentFrameInteractables.Add(target);
+        }
+
+        private void CheckPhysicalBlockers(List<(Generator, LaserSegment)> allSegments, Dictionary<LaserSegment, BlockInfo> blockedSegmentInfos)
+        {
+            foreach (var (_, segment) in allSegments)
+            {
+                var from = segment.From.LaserPoint;
+                var to = segment.To.LaserPoint;
+                var direction = (to - from).normalized;
+                var distance = Vector3.Distance(from, to);
+
+                if (!Physics.Raycast(from, direction, out var hit, distance, obstacleMask))
+                {
+                    continue;
+                }
+                
+                if (blockedSegmentInfos.TryGetValue(segment, out var blockInfo))
+                {
+                    var distanceToIntersection = Vector3.Distance(from, blockInfo.CollisionPoint);
+                    var distanceToHit = Vector3.Distance(from, hit.point);
+                    
+                    if (blockInfo.ConflictingSegment != null && distanceToHit > distanceToIntersection + 0.01f)
+                    {
+                        continue;
+                    }
+                }
+
+                blockedSegmentInfos[segment] = new BlockInfo(hit.point, null);
+            }
         }
 
 #if UNITY_EDITOR

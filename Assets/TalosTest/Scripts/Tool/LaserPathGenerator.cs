@@ -4,20 +4,6 @@ using UnityEngine;
 
 namespace TalosTest.Tool
 {
-    public readonly struct LaserSegment
-    {
-        public LaserInteractable From { get; }
-        public LaserInteractable To { get; }
-
-        public LaserSegment(LaserInteractable from, LaserInteractable to)
-        {
-            From = from;
-            To = to;
-        }
-
-        public override string ToString() => $"{From} → {To}";
-    }
-    
     public class LaserPathGenerator
     {
         private readonly LayerMask _layerMaskObstacle;
