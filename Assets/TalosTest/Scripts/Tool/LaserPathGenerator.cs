@@ -4,6 +4,20 @@ using UnityEngine;
 
 namespace TalosTest.Tool
 {
+    public readonly struct LaserSegment
+    {
+        public LaserInteractable From { get; }
+        public LaserInteractable To { get; }
+
+        public LaserSegment(LaserInteractable from, LaserInteractable to)
+        {
+            From = from;
+            To = to;
+        }
+
+        public override string ToString() => $"{From} → {To}";
+    }
+    
     public class LaserPathGenerator
     {
         private readonly LayerMask _layerMaskObstacle;
@@ -140,6 +154,77 @@ namespace TalosTest.Tool
                 }
             }
         }
+        
+        
+        
+        private readonly List<List<LaserSegment>> _allPathSegments = new();
+        
+        public List<List<LaserSegment>> FindAllPathSegments(LaserInteractable start)
+        {
+            _checked.Clear();
+            _currentPath.Clear();
+            _allPathSegments.Clear();
+
+            FindPathSegments(start);
+
+            return _allPathSegments;
+        }
+
+        private void FindPathSegments(LaserInteractable current)
+        {
+            _checked.Add(current);
+            _currentPath.Add(current);
+
+            foreach (var connection in current.InputConnections.Concat(current.OutputConnections))
+            {
+                if (_checked.Contains(connection))
+                    continue;
+
+                FindPathSegments(connection);
+            }
+
+            if (_currentPath.Count > 1)
+            {
+                var segments = new List<LaserSegment>();
+                for (int i = 0; i < _currentPath.Count - 1; i++)
+                {
+                    segments.Add(new LaserSegment(_currentPath[i], _currentPath[i + 1]));
+                }
+                _allPathSegments.Add(segments);
+            }
+
+            _checked.Remove(current);
+            _currentPath.RemoveAt(_currentPath.Count - 1);
+        }
+        
+        
+        private void FindPaths(LaserInteractable current)
+        {
+            _checked.Add(current);
+            _currentPath.Add(current);
+
+            foreach (var connection in current.InputConnections.Concat(current.OutputConnections))
+            {
+                if (_checked.Contains(connection))
+                {
+                    continue;
+                }
+
+                FindPathWithoutFinishTarget(connection);
+            }
+
+            var isOpenPath =  _currentPath.Count > 0;
+            if (isOpenPath)
+            {
+                _allPaths.Add(new List<LaserInteractable>(_currentPath));
+            }
+
+            _checked.Remove(current);
+            _currentPath.RemoveAt(_currentPath.Count - 1);
+        }
+        
+        
+        
         public List<List<LaserInteractable>> FindAllOpenPaths(LaserInteractable start)
         {
             _checked.Clear();
