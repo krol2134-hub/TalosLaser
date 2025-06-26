@@ -24,8 +24,8 @@ namespace TalosTest.Tool
                     {
                         var intersection = GetLaserIntersectionPoint(segA, segB);
 
-                        blockedSegmentInfos[segA] = new BlockInfo(intersection, segB);
-                        blockedSegmentInfos[segB] = new BlockInfo(intersection, segA);
+                        blockedSegmentInfos[segA] = new BlockInfo(intersection, segB, segA);
+                        blockedSegmentInfos[segB] = new BlockInfo(intersection, segA, segB);
                     }
                 }
             }

@@ -22,6 +22,51 @@ namespace TalosTest.Tool
             _layerMaskObstacle = layerMaskObstacle;
         }
 
+        public List<List<LaserSegment>> FindAllPathSegments(LaserInteractable start)
+        {
+            _checked.Clear();
+            _currentPath.Clear();
+
+            var allPaths = new List<List<LaserSegment>>();
+            FindPathSegments(start, allPaths);
+            return allPaths;
+        }
+
+        private void FindPathSegments(LaserInteractable current, List<List<LaserSegment>> allPathSegments)
+        {
+            _checked.Add(current);
+            _currentPath.Add(current);
+
+            var nextConnections = current.InputConnections
+                .Concat(current.OutputConnections)
+                .Where(conn => !_checked.Contains(conn))
+                .ToList();
+
+            if (current is Receiver || nextConnections.Count == 0)
+            {
+                if (_currentPath.Count > 1)
+                {
+                    var segments = new List<LaserSegment>();
+                    for (var i = 0; i < _currentPath.Count - 1; i++)
+                    {
+                        segments.Add(new LaserSegment(_currentPath[i], _currentPath[i + 1]));
+                    }
+
+                    allPathSegments.Add(segments);
+                }
+            }
+            else
+            {
+                foreach (var next in nextConnections)
+                {
+                    FindPathSegments(next, allPathSegments);
+                }
+            }
+
+            _checked.Remove(current);
+            _currentPath.RemoveAt(_currentPath.Count - 1);
+        }
+
         public List<List<LaserInteractable>> FindAllPathsBetweenGenerators(LaserInteractable start,
             LaserInteractable target)
         {
@@ -106,7 +151,7 @@ namespace TalosTest.Tool
 
             return _allBranches;
         }
-        
+
         private void ExploreOutsidePathBranches(LaserInteractable current, List<LaserInteractable> result)
         {
             var stack = new Stack<(LaserInteractable node, bool cameFromUsed)>();
@@ -140,51 +185,8 @@ namespace TalosTest.Tool
                 }
             }
         }
-        
-        
-        
-        private readonly List<List<LaserSegment>> _allPathSegments = new();
-        
-        public List<List<LaserSegment>> FindAllPathSegments(LaserInteractable start)
-        {
-            _checked.Clear();
-            _currentPath.Clear();
-            _allPathSegments.Clear();
 
-            var paths = new List<List<LaserSegment>>();
-            FindPathSegments(start, paths);
 
-            return paths;
-        }
-
-        private void FindPathSegments(LaserInteractable current, List<List<LaserSegment>> allPathSegments)
-        {
-            _checked.Add(current);
-            _currentPath.Add(current);
-
-            foreach (var connection in current.InputConnections.Concat(current.OutputConnections))
-            {
-                if (_checked.Contains(connection))
-                    continue;
-
-                FindPathSegments(connection, allPathSegments);
-            }
-
-            if (_currentPath.Count > 1)
-            {
-                var segments = new List<LaserSegment>();
-                for (int i = 0; i < _currentPath.Count - 1; i++)
-                {
-                    segments.Add(new LaserSegment(_currentPath[i], _currentPath[i + 1]));
-                }
-                allPathSegments.Add(segments);
-            }
-
-            _checked.Remove(current);
-            _currentPath.RemoveAt(_currentPath.Count - 1);
-        }
-        
-        
         private void FindPaths(LaserInteractable current)
         {
             _checked.Add(current);
