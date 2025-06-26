@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TalosTest.Pools;
 using TalosTest.Visuals;
 using UnityEngine;
 
@@ -7,7 +8,7 @@ namespace TalosTest.Tool
     public class LaserVfxController : MonoBehaviour
     {
         [SerializeField] private LaserEffectPool laserEffectPool;
-        [SerializeField] private HitSparksEffectPool hitSparksEffectPool;
+        [SerializeField] private GameObjectPool hitSparksEffectPool;
         [SerializeField] private float gizmosTime = 0f;
 
         private readonly Dictionary<(Vector3 start, Vector3 end, ColorType), LaserEffect> _activeLaserEffects = new();
