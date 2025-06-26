@@ -1,15 +1,17 @@
 using System.Collections.Generic;
 using TalosTest.Tool;
+using TalosTest.Visuals;
 using UnityEngine;
 using UnityEngine.Pool;
 
-namespace TalosTest.Visuals
+namespace TalosTest.Pools
 {
+    //TODO Need refactor. Now is fabric and pool as same. And need use common pool class
     public class LaserEffectPool : MonoBehaviour
     {
         [SerializeField] private int defaultPoolSize = 15;
         [SerializeField] private int maxPoolSize = 50;
-        [SerializeField] private List<LaserEffectByColorType> effectPrefabByColorTypes;
+        [SerializeField] private LaserEffectByColorType[] effectPrefabByColorTypes;
 
         private readonly Dictionary<ColorType, ObjectPool<LaserEffect>> _poolsByColor = new();
 
