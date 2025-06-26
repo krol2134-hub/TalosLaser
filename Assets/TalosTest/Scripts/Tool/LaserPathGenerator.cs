@@ -126,7 +126,7 @@ namespace TalosTest.Tool
                     continue;
                 }
 
-                _usedInteractable.Add(connection);
+                _checked.Add(connection);
                 result.Add(connection);
 
                 foreach (var laserInteractable in connection.InputConnections.Concat(connection.OutputConnections))
@@ -176,18 +176,6 @@ namespace TalosTest.Tool
 
             _checked.Remove(current);
             _currentPath.RemoveAt(_currentPath.Count - 1);
-        }
-
-        private IEnumerable<LaserInteractable> GetValidConnections(LaserInteractable current)
-        {
-            var connections = current.InputConnections.Concat(current.OutputConnections);
-            foreach (var connection in connections)
-            {
-                if (!IsLaserBlocked(current.LaserPoint, connection.LaserPoint, out _))
-                {
-                    yield return connection;
-                }
-            }
         }
 
         public bool IsLaserBlocked(Vector3 start, Vector3 end, out Vector3 hitPoint)
