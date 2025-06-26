@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.ProBuilder.Shapes;
 
 namespace TalosTest.Tool
 {
@@ -20,11 +22,13 @@ namespace TalosTest.Tool
 
         private readonly HashSet<LaserInteractable> _previousFrameInteractables = new();
         private readonly HashSet<LaserInteractable> _currentFrameInteractables = new();
+        private readonly HashSet<LaserInteractable> _pathBlockers = new();
+        private readonly HashSet<(LaserInteractable, LaserInteractable)> _pathConflictBlockers = new();
 
         private LaserPathGenerator _laserPathGenerator;
 
         public Dictionary<Generator, List<List<LaserSegment>>> _segmentsbyGenerator = new();
-
+        
         private void Awake()
         {
             _generators = FindObjectsOfType<Generator>();
@@ -96,10 +100,12 @@ namespace TalosTest.Tool
         {
             UpdateGeneratorLasers();
         }
-        
+
         private void UpdateGeneratorLasers()
         {
             ResetAll();
+
+            DetectColorConflictsBetweenGenerators();
 
             foreach (var generator in _generators)
             {
@@ -138,6 +144,21 @@ namespace TalosTest.Tool
                             _currentFrameInteractables.Add(segment.From);
                             break;
                         }
+                        
+                        if (_pathBlockers.Contains(segment.To))
+                        {
+                            laserVFXController.DisplayLaserEffect(generator.LaserColor, segment.From.LaserPoint, segment.To.LaserPoint);
+                            _currentFrameInteractables.Add(segment.From);
+                            break;
+                        }
+                        
+                        if (_pathConflictBlockers.Contains((segment.From, segment.To)) || _pathConflictBlockers.Contains((segment.To, segment.From)))
+                        {
+                            laserVFXController.DisplayConflictLaserEffect(generator.LaserColor, segment.From, segment.To);
+                            _currentFrameInteractables.Add(segment.From);
+                            break;
+                        }
+                        
 
                         ConnectLaser(to, generator.LaserColor);
                         laserVFXController.DisplayLaserEffectConnection(generator.LaserColor, from.LaserPoint, to.LaserPoint);
@@ -148,6 +169,11 @@ namespace TalosTest.Tool
             foreach (var info in blockedSegmentInfos.Values)
             {
                 laserVFXController.DisplayHitMark(info.CollisionPoint);
+            }
+            
+            foreach (var info in _pathBlockers)
+            {
+                laserVFXController.DisplayHitMark(info.LaserPoint);
             }
         }
 
@@ -189,6 +215,46 @@ namespace TalosTest.Tool
 
                 //TODO Add other struct
                 blockedSegmentInfos[segment] = new BlockInfo(hit.point, null, null);
+            }
+        }
+
+        private void DetectColorConflictsBetweenGenerators()
+        {
+            _pathBlockers.Clear();
+            _pathConflictBlockers.Clear();
+
+            for (var i = 0; i < _generators.Length; i++)
+            {
+                for (var j = i + 1; j < _generators.Length; j++)
+                {
+                    var generatorA = _generators[i];
+                    var generatorB = _generators[j];
+
+                    if (generatorA.LaserColor == generatorB.LaserColor)
+                        continue;
+
+                    var paths = _laserPathGenerator.FindAllPathsBetweenGenerators(generatorA, generatorB);
+                    foreach (var path in paths)
+                    {
+                        var connectors = path.OfType<Connector>().ToList();
+                        if (connectors.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        if (connectors.Count % 2 == 1)
+                        {
+                            var mid = connectors[connectors.Count / 2];
+                            _pathBlockers.Add(mid);
+                        }
+                        else
+                        {
+                            var mid1 = connectors[(connectors.Count / 2) - 1];
+                            var mid2 = connectors[connectors.Count / 2];
+                            _pathConflictBlockers.Add((mid1, mid2));
+                        }
+                    }
+                }
             }
         }
 
