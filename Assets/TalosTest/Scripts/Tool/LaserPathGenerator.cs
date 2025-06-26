@@ -165,12 +165,13 @@ namespace TalosTest.Tool
             _currentPath.Clear();
             _allPathSegments.Clear();
 
-            FindPathSegments(start);
+            var paths = new List<List<LaserSegment>>();
+            FindPathSegments(start, paths);
 
-            return _allPathSegments;
+            return paths;
         }
 
-        private void FindPathSegments(LaserInteractable current)
+        private void FindPathSegments(LaserInteractable current, List<List<LaserSegment>> allPathSegments)
         {
             _checked.Add(current);
             _currentPath.Add(current);
@@ -180,7 +181,7 @@ namespace TalosTest.Tool
                 if (_checked.Contains(connection))
                     continue;
 
-                FindPathSegments(connection);
+                FindPathSegments(connection, allPathSegments);
             }
 
             if (_currentPath.Count > 1)
@@ -190,7 +191,7 @@ namespace TalosTest.Tool
                 {
                     segments.Add(new LaserSegment(_currentPath[i], _currentPath[i + 1]));
                 }
-                _allPathSegments.Add(segments);
+                allPathSegments.Add(segments);
             }
 
             _checked.Remove(current);
