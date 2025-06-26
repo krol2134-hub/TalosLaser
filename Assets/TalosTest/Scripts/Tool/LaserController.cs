@@ -17,8 +17,10 @@ namespace TalosTest.Tool
 
         private readonly Dictionary<Generator, List<LaserInteractable>> _alreadyCheckedGeneratorInputs = new();
         private readonly List<List<LaserInteractable>> _allPathsReverse = new();
-        
         private readonly List<(LaserInteractable, LaserInteractable)> _conflictConnectors = new();
+        
+        private readonly HashSet<LaserInteractable> _previousFrameInteractables = new();
+        private readonly HashSet<LaserInteractable> _currentFrameInteractables = new();
         
         private Generator[] _generators;
         private Receiver[] _receivers;
@@ -97,10 +99,23 @@ namespace TalosTest.Tool
 
         private void ResetAll()
         {
-            ResetInteractables(_generators);
-            ResetInteractables(_receivers);
-            ResetInteractables(_connectors);
+            foreach (var laser in _previousFrameInteractables)
+            {
+                if (!_currentFrameInteractables.Contains(laser))
+                {
+                    laser.Reset();
+                }
+            }
+
+            _previousFrameInteractables.Clear();
+            foreach (var laser in _currentFrameInteractables)
+            {
+                _previousFrameInteractables.Add(laser);
+            }
+
             laserVFXController.Clear();
+            laserVFXController.Clear();
+            _currentFrameInteractables.Clear();
         }
         
         private bool TryGenerateConflictLaserPaths(Generator generator, Generator conflictGenerator)
@@ -222,8 +237,7 @@ namespace TalosTest.Tool
                         break;
                     }
 
-                    target.AddInputColor(currentColor);
-
+                    ConnectLaser(target, currentColor);
                     laserVFXController.DisplayLaserEffectConnection(currentColor, current.LaserPoint, target.LaserPoint);
                 }
             }
@@ -337,7 +351,7 @@ namespace TalosTest.Tool
             if (isBlocker)
             {
                 laserVFXController.DisplayLaserEffectWithHit(currentColor, current.LaserPoint, target.LaserPoint);
-                target.AddInputColor(currentColor);
+                ConnectLaser(target, currentColor);
                     
                 return false;
             }
@@ -349,11 +363,17 @@ namespace TalosTest.Tool
                 return false;
             }
 
-            target.AddInputColor(currentColor);
+            ConnectLaser(target, currentColor);
             laserVFXController.DisplayLaserEffectConnection(currentColor, current.LaserPoint, target.LaserPoint);
 
 
             return true;
+        }
+
+        private void ConnectLaser(LaserInteractable target, ColorType currentColor)
+        {
+            target.AddInputColor(currentColor);
+            _currentFrameInteractables.Add(target);
         }
 
         private bool CheckPhysicalHitBlockerPath(List<LaserInteractable> pathInteractables)
