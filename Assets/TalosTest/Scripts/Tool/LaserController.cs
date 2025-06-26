@@ -351,8 +351,7 @@ namespace TalosTest.Tool
 
             if (isBlocker)
             {
-                DrawLaserEffect(currentColor, current.LaserPoint, target.LaserPoint);
-                    
+                DrawLaserEffectWithHit(currentColor, current.LaserPoint, target.LaserPoint);
                 target.AddInputColor(currentColor);
                     
                 return false;
@@ -360,7 +359,7 @@ namespace TalosTest.Tool
 
             if (lineConflict)
             {
-                DrawHalfBrokenLaserEffect(currentColor, current, target);
+                DrawConflictLaserEffect(currentColor, current, target);
                     
                 return false;
             }
@@ -397,13 +396,13 @@ namespace TalosTest.Tool
             return isHitPhysicalBlocker;
         }
 
-        private void DrawHalfBrokenLaserEffect(ColorType currentColor, LaserInteractable current, LaserInteractable target)
+        private void DrawConflictLaserEffect(ColorType currentColor, LaserInteractable current, LaserInteractable target)
         {
             var direction = target.LaserPoint - current.LaserPoint;
             var distance = direction.magnitude / 2;
             var targetPoint = current.LaserPoint + direction.normalized * distance;
 
-            DrawLaserEffect(currentColor, current.LaserPoint, targetPoint);
+            DrawLaserEffectWithHit(currentColor, current.LaserPoint, targetPoint);
         }
 
         private void DrawLaserEffectWithHit(ColorType currentColor, Vector3 startPoint, Vector3 targetPoint)
