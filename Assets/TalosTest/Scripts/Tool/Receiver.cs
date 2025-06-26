@@ -22,6 +22,13 @@ namespace TalosTest.Tool
             return true;
         }
 
+        public override void Reset()
+        {
+            base.Reset();
+            
+            UpdateActivationState();
+        }
+        
         public override void AddInputColor(ColorType color)
         {
             base.AddInputColor(color);
