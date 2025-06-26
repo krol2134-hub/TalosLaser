@@ -17,21 +17,21 @@ namespace TalosTest.Tool
             activateEffect.SetActive(IsActivate);
         }
 
-        public override bool CanConnectLaser()
+        public override bool CanConnectColor(ColorType colorType)
         {
             return true;
         }
 
-        public override void AddInputLaser(ColorType color)
+        public override void AddInputColor(ColorType color)
         {
-            base.AddInputLaser(color);
+            base.AddInputColor(color);
 
             UpdateActivationState();
         }
         
         private void UpdateActivationState()
         {
-            var isActivate = InputLaserColors.Contains(targetColor);
+            var isActivate = _inputLaserColors.Contains(targetColor);
 
             var isSameState = IsActivate == isActivate;
             if (isSameState)
