@@ -7,24 +7,24 @@ namespace TalosTest.Pools
         protected override GameObject CreateEffect()
         {
             var gameObjectFromPool = base.CreateEffect();
-            gameObjectFromPool.gameObject.SetActive(false);
+            gameObjectFromPool.SetActive(false);
             
             return base.CreateEffect();
         }
 
         protected override void OnGetElement(GameObject effect)
         {
-            effect.gameObject.SetActive(true);
+            effect.SetActive(true);
         }
 
         protected override void OnRelease(GameObject effect)
         {
-            effect.gameObject.SetActive(false);
+            effect.SetActive(false);
         }
 
         protected override void OnDestroyFromPool(GameObject effect)
         {
-            Destroy(effect.gameObject);
+            Destroy(effect);
         }
 
         public override GameObject Get(Vector3 position)
