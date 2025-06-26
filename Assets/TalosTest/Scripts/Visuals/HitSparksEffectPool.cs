@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using TalosTest.Tool;
 using UnityEngine;
 using UnityEngine.Pool;
 
