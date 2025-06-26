@@ -5,12 +5,13 @@ namespace TalosTest.Tool
     public struct BlockInfo
     {
         public Vector3 CollisionPoint;
-        public LaserSegment ConflictingSegment;
+        public readonly LaserSegment ConflictingSegment;
+        public readonly LaserSegment OtherConflictingSegment;
 
-        public BlockInfo(Vector3 point, LaserSegment conflict)
+        public BlockInfo(Vector3 point, LaserSegment conflictingSegment, LaserSegment otherConflictingSegment, bool isIntersection = false)
         {
             CollisionPoint = point;
-            ConflictingSegment = conflict;
+            ConflictingSegment = conflictingSegment;
+            OtherConflictingSegment = otherConflictingSegment;
         }
-    }
-}
+    }}

@@ -134,7 +134,8 @@ namespace TalosTest.Tool
 
                         if (blockedSegmentInfos.TryGetValue(segment, out var blockInfo))
                         {
-                            laserVFXController.DisplayLaserEffectConnection(generator.LaserColor, segment.From.LaserPoint, blockInfo.CollisionPoint);
+                            laserVFXController.DisplayLaserEffect(generator.LaserColor, segment.From.LaserPoint, blockInfo.CollisionPoint);
+                            _currentFrameInteractables.Add(segment.From);
                             break;
                         }
 
@@ -175,13 +176,19 @@ namespace TalosTest.Tool
                     var distanceToIntersection = Vector3.Distance(from, blockInfo.CollisionPoint);
                     var distanceToHit = Vector3.Distance(from, hit.point);
                     
-                    if (blockInfo.ConflictingSegment != null && distanceToHit > distanceToIntersection + 0.01f)
+                    if (distanceToHit > distanceToIntersection + 0.01f)
                     {
                         continue;
                     }
+                    else
+                    {
+                        blockedSegmentInfos.Remove(blockInfo.ConflictingSegment);
+                        blockedSegmentInfos.Remove(blockInfo.OtherConflictingSegment);
+                    }
                 }
 
-                blockedSegmentInfos[segment] = new BlockInfo(hit.point, null);
+                //TODO Add other struct
+                blockedSegmentInfos[segment] = new BlockInfo(hit.point, null, null);
             }
         }
 
