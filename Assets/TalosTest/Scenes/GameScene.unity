@@ -5881,6 +5881,7 @@ GameObject:
   m_Component:
   - component: {fileID: 836609889}
   - component: {fileID: 836609890}
+  - component: {fileID: 836609891}
   m_Layer: 0
   m_Name: LaserController
   m_TagString: Untagged
@@ -5910,9 +5911,28 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 836609888}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4f63072eff199b641aff2cb75530d97f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 65
+  laserVFXController: {fileID: 415046643}
+  pathCountDebug: 0
+  maxPathCountDebug: -1
+  onlyPathTargetDebug: -1
+--- !u!114 &836609891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 836609888}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3ce0cb671ec4526b97c57c87130d0ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   obstacleMask:
