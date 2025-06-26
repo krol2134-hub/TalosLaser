@@ -218,13 +218,13 @@ namespace TalosTest.Tool
 
                     if (_laserPathGenerator.IsLaserBlocked(current.LaserPoint, target.LaserPoint, out var hitPoint))
                     {
-                        laserVFXController.DrawLaserEffectWithHit(currentColor, current.LaserPoint, hitPoint);
+                        laserVFXController.DisplayLaserEffectWithHit(currentColor, current.LaserPoint, hitPoint);
                         break;
                     }
 
                     target.AddInputColor(currentColor);
 
-                    laserVFXController.DrawLaserEffect(currentColor, current.LaserPoint, target.LaserPoint);
+                    laserVFXController.DisplayLaserEffectConnection(currentColor, current.LaserPoint, target.LaserPoint);
                 }
             }
         }
@@ -326,7 +326,7 @@ namespace TalosTest.Tool
         {
             if (_laserPathGenerator.IsLaserBlocked(current.LaserPoint, target.LaserPoint, out var hitPoint))
             {
-                laserVFXController.DrawLaserEffectWithHit(currentColor, current.LaserPoint, hitPoint);
+                laserVFXController.DisplayLaserEffectWithHit(currentColor, current.LaserPoint, hitPoint);
                 return false;
             }
 
@@ -336,7 +336,7 @@ namespace TalosTest.Tool
 
             if (isBlocker)
             {
-                laserVFXController.DrawLaserEffectWithHit(currentColor, current.LaserPoint, target.LaserPoint);
+                laserVFXController.DisplayLaserEffectWithHit(currentColor, current.LaserPoint, target.LaserPoint);
                 target.AddInputColor(currentColor);
                     
                 return false;
@@ -344,13 +344,13 @@ namespace TalosTest.Tool
 
             if (lineConflict)
             {
-                laserVFXController.DrawConflictLaserEffect(currentColor, current, target);
+                laserVFXController.DisplayConflictLaserEffect(currentColor, current, target);
                     
                 return false;
             }
 
             target.AddInputColor(currentColor);
-            laserVFXController.DrawLaserEffect(currentColor, current.LaserPoint, target.LaserPoint);
+            laserVFXController.DisplayLaserEffectConnection(currentColor, current.LaserPoint, target.LaserPoint);
 
 
             return true;

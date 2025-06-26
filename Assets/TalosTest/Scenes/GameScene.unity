@@ -1034,6 +1034,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 956784809}
+  - {fileID: 1330896735}
   - {fileID: 1157003001}
   m_Father: {fileID: 8291648}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2539,9 +2540,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3b1a3d93c5648e5b01eefd78c0173b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  colorSettings: {fileID: 11400000, guid: 01c61902375de8949a3c2e803bb2d851, type: 2}
+  gizmosTime: 0
   laserEffectPool: {fileID: 956784808}
   hitSparksEffectPool: {fileID: 1157003002}
-  gizmosTime: 0
+  laserSphereVFXPool: {fileID: 1330896736}
 --- !u!1001 &480835689
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7469,6 +7472,53 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1311935091}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1330896734
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1330896735}
+  - component: {fileID: 1330896736}
+  m_Layer: 0
+  m_Name: LaserSpherePool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1330896735
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1330896734}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 180024456}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1330896736
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1330896734}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17e1b1351c664b1bbe699571fdd8afa5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultPoolSize: 5
+  maxPoolSize: 10
+  prefab: {fileID: 7182238557291732715, guid: e1330ed1585b3084e92289ad775e6fb6, type: 3}
 --- !u!1001 &1351213419
 PrefabInstance:
   m_ObjectHideFlags: 0

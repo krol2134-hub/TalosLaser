@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using TalosTest.Pools;
+using TalosTest.Settings;
+using TalosTest.VFX;
 using TalosTest.Visuals;
 using UnityEngine;
 
@@ -7,9 +9,14 @@ namespace TalosTest.Tool
 {
     public class LaserVfxController : MonoBehaviour
     {
+        [Header("Settings")]
+        [SerializeField] private ColorSettings colorSettings;
+        [SerializeField] private float gizmosTime;
+        
+        [Header("Reference")]
         [SerializeField] private LaserEffectPool laserEffectPool;
         [SerializeField] private GameObjectPool hitSparksEffectPool;
-        [SerializeField] private float gizmosTime = 0f;
+        [SerializeField] private LaserSphereVFXPool laserSphereVFXPool;
 
         private readonly Dictionary<(Vector3 start, Vector3 end, ColorType), LaserEffect> _activeLaserEffects = new();
         private readonly List<(Vector3 start, Vector3 end, ColorType)> _usedLasersBuffer = new();
@@ -18,28 +25,37 @@ namespace TalosTest.Tool
         private readonly HashSet<Vector3> _usedHitPoints = new();
         private readonly List<Vector3> _hitMarkPointsToRemove = new();
         
+        private readonly Dictionary<Vector3, LaserSphereVFX> _activeSphereEffects = new();
+        private readonly HashSet<Vector3> _usedSpherePoints = new();
+        private readonly List<Vector3> _spherePointsToRemove = new();
+        
         public void Clear()
         {
             ClearEffects();
         }
         
-        public void DrawConflictLaserEffect(ColorType currentColor, LaserInteractable current, LaserInteractable target)
+        public void DisplayConflictLaserEffect(ColorType currentColor, LaserInteractable current, LaserInteractable target)
         {
             var direction = target.LaserPoint - current.LaserPoint;
             var distance = direction.magnitude / 2;
             var targetPoint = current.LaserPoint + direction.normalized * distance;
 
-            DrawLaserEffectWithHit(currentColor, current.LaserPoint, targetPoint);
+            DisplayLaserEffectWithHit(currentColor, current.LaserPoint, targetPoint);
         }
 
-        public void DrawLaserEffectWithHit(ColorType currentColor, Vector3 startPoint, Vector3 targetPoint)
+        public void DisplayLaserEffectWithHit(ColorType currentColor, Vector3 startPoint, Vector3 targetPoint)
         {
             DisplayHitMark(targetPoint);
-
-            DrawLaserEffect(currentColor, startPoint, targetPoint);
+            DisplayLaserEffect(currentColor, startPoint, targetPoint);
         }
 
-        public void DrawLaserEffect(ColorType currentColor, Vector3 startPoint, Vector3 targetPoint)
+        public void DisplayLaserEffectConnection(ColorType currentColor, Vector3 startPoint, Vector3 targetPoint)
+        {
+            DisplayLaserEffect(currentColor, startPoint, targetPoint);
+            DisplaySphere(currentColor, targetPoint);
+        }
+        
+        public void DisplayLaserEffect(ColorType currentColor, Vector3 startPoint, Vector3 targetPoint)
         {
             Debug.DrawLine(startPoint, targetPoint, currentColor == ColorType.Blue ? Color.blue : Color.red, gizmosTime);
             
@@ -55,7 +71,7 @@ namespace TalosTest.Tool
                 UpdateLaserEffect(laserEffect, startPoint, targetPoint);
                 _activeLaserEffects.Add((startPoint, targetPoint, currentColor), laserEffect);
             }
-
+            
             _usedLasersBuffer.Add(startTargetPoint);
         }
 
@@ -71,13 +87,28 @@ namespace TalosTest.Tool
             var hitEffect = hitSparksEffectPool.Get(targetPoint);
             _activeHitEffects[targetPoint] = hitEffect;
         }
+        
+        public void DisplaySphere(ColorType colorType, Vector3 targetPoint)
+        {
+            _usedSpherePoints.Add(targetPoint);
+
+            if (_activeSphereEffects.ContainsKey(targetPoint))
+            {
+                return;
+            }
+                
+            var hitEffect = laserSphereVFXPool.Get(targetPoint);
+            _activeSphereEffects[targetPoint] = hitEffect;
+
+            var colorPreset = colorSettings.GetColorSettingsByType(colorType);
+            hitEffect.UpdateColor(colorPreset.LaserSphereMainColor, colorPreset.LaserSphereAdditionalColor);
+        }
 
         private void UpdateLaserEffect(LaserEffect laserEffect, Vector3 startPoint, Vector3 targetPoint)
         {
             laserEffect.transform.position = startPoint;
             laserEffect.transform.LookAt(targetPoint);
         }
-        
         
         private void ClearEffects()
         {
@@ -105,7 +136,6 @@ namespace TalosTest.Tool
             {
                 if (!_usedHitPoints.Contains(kvp.Key))
                 {
-                    kvp.Value.SetActive(false);
                     hitSparksEffectPool.Release(kvp.Value);
                     _hitMarkPointsToRemove.Add(kvp.Key);
                 }
@@ -115,8 +145,24 @@ namespace TalosTest.Tool
             {
                 _activeHitEffects.Remove(key);
             }
+            
+            _spherePointsToRemove.Clear();
+            foreach (var kvp in _activeSphereEffects)
+            {
+                if (!_usedSpherePoints.Contains(kvp.Key))
+                {
+                    laserSphereVFXPool.Release(kvp.Value);
+                    _spherePointsToRemove.Add(kvp.Key);
+                }
+            }
+
+            foreach (var key in _spherePointsToRemove)
+            {
+                _activeSphereEffects.Remove(key);
+            }
 
             _usedHitPoints.Clear();
+            _usedSpherePoints.Clear();
         }
     }
 }
