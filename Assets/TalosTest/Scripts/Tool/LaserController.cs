@@ -1,18 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
-using TalosTest.Visuals;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace TalosTest.Tool
 {
     //TODO Need optimize: Replace FindObjectsOfType, Use event for process lasers instead Update
     public class LaserController : MonoBehaviour
     {
-        [SerializeField] private LaserEffectPool laserEffectPool;
-        [SerializeField] private HitSparksEffectPool hitSparksEffectPool;
-        [SerializeField] private float gizmosTime = 0f;
         [SerializeField] private LayerMask obstacleMask;
+        [SerializeField] private LaserVfxController laserVFXController;
 #if UNITY_EDITOR
         [SerializeField] private int pathCountDebug;
         [SerializeField, Range(-1, 10)] private int maxPathCountDebug = -1;
@@ -23,13 +19,6 @@ namespace TalosTest.Tool
         private readonly List<List<LaserInteractable>> _allPathsReverse = new();
         
         private readonly List<(LaserInteractable, LaserInteractable)> _conflictConnectors = new();
-
-        private readonly Dictionary<(Vector3 start, Vector3 end, ColorType), LaserEffect> _activeLaserEffects = new();
-        private readonly List<(Vector3 start, Vector3 end, ColorType)> _usedLasersBuffer = new();
-        private readonly List<(Vector3 start, Vector3 end, ColorType)> _removeLasersBuffer = new();
-        private readonly Dictionary<Vector3, GameObject> _activeHitEffects = new();
-        private readonly HashSet<Vector3> _usedHitPoints = new();
-        private readonly List<Vector3> _hitMarkPointsToRemove = new();
         
         private Generator[] _generators;
         private Receiver[] _receivers;
@@ -37,9 +26,7 @@ namespace TalosTest.Tool
 
         private LaserPathGenerator _laserPathGenerator;
         private List<LaserInteractable> _connectorBlockers = new();
-
-        private Vector3 LaserDebugOffset => new(Random.Range(0f, 0.2f), 0, Random.Range(0f, 0.2f));
-
+        
         private void Awake()
         {
             _generators = FindObjectsOfType<Generator>();
@@ -85,7 +72,6 @@ namespace TalosTest.Tool
         private void UpdateGeneratorLasers()
         {
             ResetAll();
-            _usedLasersBuffer.Clear();
             
             foreach (var checkedGeneratorInputs in _alreadyCheckedGeneratorInputs.Values)
             {
@@ -107,8 +93,6 @@ namespace TalosTest.Tool
                     }
                 }
             }
-
-            ClearLaserEffects();
         }
 
         private void ResetAll()
@@ -116,6 +100,7 @@ namespace TalosTest.Tool
             ResetInteractables(_generators);
             ResetInteractables(_receivers);
             ResetInteractables(_connectors);
+            laserVFXController.Clear();
         }
         
         private bool TryGenerateConflictLaserPaths(Generator generator, Generator conflictGenerator)
@@ -233,13 +218,13 @@ namespace TalosTest.Tool
 
                     if (_laserPathGenerator.IsLaserBlocked(current.LaserPoint, target.LaserPoint, out var hitPoint))
                     {
-                        DrawLaserEffectWithHit(currentColor, current.LaserPoint, hitPoint);
+                        laserVFXController.DrawLaserEffectWithHit(currentColor, current.LaserPoint, hitPoint);
                         break;
                     }
 
                     target.AddInputColor(currentColor);
 
-                    DrawLaserEffect(currentColor, current.LaserPoint, target.LaserPoint);
+                    laserVFXController.DrawLaserEffect(currentColor, current.LaserPoint, target.LaserPoint);
                 }
             }
         }
@@ -341,7 +326,7 @@ namespace TalosTest.Tool
         {
             if (_laserPathGenerator.IsLaserBlocked(current.LaserPoint, target.LaserPoint, out var hitPoint))
             {
-                DrawLaserEffectWithHit(currentColor, current.LaserPoint, hitPoint);
+                laserVFXController.DrawLaserEffectWithHit(currentColor, current.LaserPoint, hitPoint);
                 return false;
             }
 
@@ -351,7 +336,7 @@ namespace TalosTest.Tool
 
             if (isBlocker)
             {
-                DrawLaserEffectWithHit(currentColor, current.LaserPoint, target.LaserPoint);
+                laserVFXController.DrawLaserEffectWithHit(currentColor, current.LaserPoint, target.LaserPoint);
                 target.AddInputColor(currentColor);
                     
                 return false;
@@ -359,13 +344,13 @@ namespace TalosTest.Tool
 
             if (lineConflict)
             {
-                DrawConflictLaserEffect(currentColor, current, target);
+                laserVFXController.DrawConflictLaserEffect(currentColor, current, target);
                     
                 return false;
             }
 
             target.AddInputColor(currentColor);
-            DrawLaserEffect(currentColor, current.LaserPoint, target.LaserPoint);
+            laserVFXController.DrawLaserEffect(currentColor, current.LaserPoint, target.LaserPoint);
 
 
             return true;
@@ -394,99 +379,6 @@ namespace TalosTest.Tool
             }
 
             return isHitPhysicalBlocker;
-        }
-
-        private void DrawConflictLaserEffect(ColorType currentColor, LaserInteractable current, LaserInteractable target)
-        {
-            var direction = target.LaserPoint - current.LaserPoint;
-            var distance = direction.magnitude / 2;
-            var targetPoint = current.LaserPoint + direction.normalized * distance;
-
-            DrawLaserEffectWithHit(currentColor, current.LaserPoint, targetPoint);
-        }
-
-        private void DrawLaserEffectWithHit(ColorType currentColor, Vector3 startPoint, Vector3 targetPoint)
-        {
-            DisplayHitMark(targetPoint);
-
-            DrawLaserEffect(currentColor, startPoint, targetPoint);
-        }
-
-        private void DisplayHitMark(Vector3 targetPoint)
-        {
-            _usedHitPoints.Add(targetPoint);
-
-            if (_activeHitEffects.ContainsKey(targetPoint))
-            {
-                return;
-            }
-                
-            var hitEffect = hitSparksEffectPool.Get(targetPoint);
-            _activeHitEffects[targetPoint] = hitEffect;
-        }
-
-        private void DrawLaserEffect(ColorType currentColor, Vector3 startPoint, Vector3 targetPoint)
-        {
-            Debug.DrawLine(startPoint, targetPoint + LaserDebugOffset, currentColor == ColorType.Blue ? Color.blue : Color.red, gizmosTime);
-            
-            var startTargetPoint = (startPoint, targetPoint, currentColor);
-
-            if (_activeLaserEffects.TryGetValue(startTargetPoint, out var laserEffect))
-            {
-                UpdateLaserEffect(laserEffect, startPoint, targetPoint);
-            }
-            else
-            {
-                laserEffect = laserEffectPool.Get(currentColor, startPoint, targetPoint);
-                UpdateLaserEffect(laserEffect, startPoint, targetPoint);
-                _activeLaserEffects.Add((startPoint, targetPoint, currentColor), laserEffect);
-            }
-
-            _usedLasersBuffer.Add(startTargetPoint);
-        }
-
-        private void UpdateLaserEffect(LaserEffect laserEffect, Vector3 startPoint, Vector3 targetPoint)
-        {
-            laserEffect.transform.position = startPoint;
-            laserEffect.transform.LookAt(targetPoint);
-        }
-
-        private void ClearLaserEffects()
-        {
-            _removeLasersBuffer.Clear();
-            foreach (var activeLaserEffect in _activeLaserEffects)
-            {
-                if (_usedLasersBuffer.Contains(activeLaserEffect.Key))
-                {
-                    continue;
-                }
-                
-                laserEffectPool.Release(activeLaserEffect.Value);
-                _removeLasersBuffer.Add(activeLaserEffect.Key);
-            }
-
-            foreach (var key in _removeLasersBuffer)
-            {
-                _activeLaserEffects.Remove(key);
-            }
-
-            _hitMarkPointsToRemove.Clear();
-            foreach (var kvp in _activeHitEffects)
-            {
-                if (!_usedHitPoints.Contains(kvp.Key))
-                {
-                    kvp.Value.SetActive(false);
-                    hitSparksEffectPool.Release(kvp.Value);
-                    _hitMarkPointsToRemove.Add(kvp.Key);
-                }
-            }
-
-            foreach (var key in _hitMarkPointsToRemove)
-            {
-                _activeHitEffects.Remove(key);
-            }
-
-            _usedHitPoints.Clear();
         }
 
         private void ResetInteractables(IReadOnlyCollection<LaserInteractable> laserInteractables)
