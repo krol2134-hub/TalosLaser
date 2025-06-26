@@ -12,7 +12,7 @@ namespace TalosTest.Tool
         public ColorType LaserColor => laserColor;
         public LaserEffect LaserEffectEffectPrefab => laserEffectEffectPrefab;
 
-        public override bool CanConnectLaser()
+        public override bool CanConnectColor(ColorType colorType)
         {
             return false;
         }
