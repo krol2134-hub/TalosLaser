@@ -8,6 +8,9 @@ namespace TalosTest.Tool
     {
         [SerializeField] private Receiver[] receivers;
         [SerializeField] private UnityEvent onAllReceiverActivated;
+        [SerializeField] private UnityEvent onDeactivated;
+
+        private bool _currentActivateState;
         
         private void OnEnable()
         {
@@ -27,15 +30,31 @@ namespace TalosTest.Tool
 
         private void ReceiverStateChangedHandler()
         {
+            var activateState = true;
             foreach (var receiver in receivers)
             {
                 if (!receiver.IsActivate)
                 {
-                    return;
+                    activateState = false;
+                    break;
                 }
             }
-            
-            onAllReceiverActivated?.Invoke();
+
+            if (_currentActivateState == activateState)
+            {
+                return;
+            }
+
+            _currentActivateState = activateState;
+
+            if (_currentActivateState)
+            {
+                onAllReceiverActivated?.Invoke();
+            }
+            else
+            {
+                onDeactivated?.Invoke();
+            }
         }
     }
 }
