@@ -5799,6 +5799,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   laserEffectPool: {fileID: 956784808}
+  hitSparksEffectPool: {fileID: 956784810}
   gizmosTime: 0
   obstacleMask:
     serializedVersion: 2
@@ -6014,6 +6015,7 @@ GameObject:
   m_Component:
   - component: {fileID: 956784809}
   - component: {fileID: 956784808}
+  - component: {fileID: 956784810}
   m_Layer: 0
   m_Name: LaserEffectPool
   m_TagString: Untagged
@@ -6057,6 +6059,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &956784810
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 956784807}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0fb8334e5f0a40b18f2015a833811e07, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultPoolSize: 10
+  maxPoolSize: 10
+  hitMarkPrefab: {fileID: 5949683234116493305, guid: 2f7b8a21a0aae5f45b7c574ad76ab22c,
+    type: 3}
 --- !u!850595691 &967191294
 LightingSettings:
   m_ObjectHideFlags: 0

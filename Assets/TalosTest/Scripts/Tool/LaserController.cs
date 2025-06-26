@@ -10,6 +10,7 @@ namespace TalosTest.Tool
     public class LaserController : MonoBehaviour
     {
         [SerializeField] private LaserEffectPool laserEffectPool;
+        [SerializeField] private HitSparksEffectPool hitSparksEffectPool;
         [SerializeField] private float gizmosTime = 0f;
         [SerializeField] private LayerMask obstacleMask;
 #if UNITY_EDITOR
@@ -26,13 +27,16 @@ namespace TalosTest.Tool
         private readonly Dictionary<(Vector3 start, Vector3 end, ColorType), LaserEffect> _activeLaserEffects = new();
         private readonly List<(Vector3 start, Vector3 end, ColorType)> _usedLasersBuffer = new();
         private readonly List<(Vector3 start, Vector3 end, ColorType)> _removeLasersBuffer = new();
-
+        private readonly Dictionary<Vector3, GameObject> _activeHitEffects = new();
+        private readonly HashSet<Vector3> _usedHitPoints = new();
+        private readonly List<Vector3> _hitMarkPointsToRemove = new();
+        
         private Generator[] _generators;
         private Receiver[] _receivers;
         private Connector[] _connectors;
 
         private LaserPathGenerator _laserPathGenerator;
-        private List<LaserInteractable> _connectorBlockers;
+        private List<LaserInteractable> _connectorBlockers = new();
 
         private Vector3 LaserDebugOffset => new(Random.Range(0f, 0.2f), 0, Random.Range(0f, 0.2f));
 
@@ -229,7 +233,7 @@ namespace TalosTest.Tool
 
                     if (_laserPathGenerator.IsLaserBlocked(current.LaserPoint, target.LaserPoint, out var hitPoint))
                     {
-                        DrawLaserEffect(currentColor, current.LaserPoint, hitPoint);
+                        DrawLaserEffectWithHit(currentColor, current.LaserPoint, hitPoint);
                         break;
                     }
 
@@ -337,7 +341,7 @@ namespace TalosTest.Tool
         {
             if (_laserPathGenerator.IsLaserBlocked(current.LaserPoint, target.LaserPoint, out var hitPoint))
             {
-                DrawLaserEffect(currentColor, current.LaserPoint, hitPoint);
+                DrawLaserEffectWithHit(currentColor, current.LaserPoint, hitPoint);
                 return false;
             }
 
@@ -402,6 +406,26 @@ namespace TalosTest.Tool
             DrawLaserEffect(currentColor, current.LaserPoint, targetPoint);
         }
 
+        private void DrawLaserEffectWithHit(ColorType currentColor, Vector3 startPoint, Vector3 targetPoint)
+        {
+            DisplayHitMark(targetPoint);
+
+            DrawLaserEffect(currentColor, startPoint, targetPoint);
+        }
+
+        private void DisplayHitMark(Vector3 targetPoint)
+        {
+            _usedHitPoints.Add(targetPoint);
+
+            if (_activeHitEffects.ContainsKey(targetPoint))
+            {
+                return;
+            }
+                
+            var hitEffect = hitSparksEffectPool.Get(targetPoint);
+            _activeHitEffects[targetPoint] = hitEffect;
+        }
+
         private void DrawLaserEffect(ColorType currentColor, Vector3 startPoint, Vector3 targetPoint)
         {
             Debug.DrawLine(startPoint, targetPoint + LaserDebugOffset, currentColor == ColorType.Blue ? Color.blue : Color.red, gizmosTime);
@@ -446,6 +470,24 @@ namespace TalosTest.Tool
             {
                 _activeLaserEffects.Remove(key);
             }
+
+            _hitMarkPointsToRemove.Clear();
+            foreach (var kvp in _activeHitEffects)
+            {
+                if (!_usedHitPoints.Contains(kvp.Key))
+                {
+                    kvp.Value.SetActive(false);
+                    hitSparksEffectPool.Release(kvp.Value);
+                    _hitMarkPointsToRemove.Add(kvp.Key);
+                }
+            }
+
+            foreach (var key in _hitMarkPointsToRemove)
+            {
+                _activeHitEffects.Remove(key);
+            }
+
+            _usedHitPoints.Clear();
         }
 
         private void ResetInteractables(IReadOnlyCollection<LaserInteractable> laserInteractables)
