@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace TalosTest.Tool
 {
+    [SelectionBase]
     public abstract class LaserInteractable : MonoBehaviour
     {
         [SerializeField] private Transform laserPoint;
