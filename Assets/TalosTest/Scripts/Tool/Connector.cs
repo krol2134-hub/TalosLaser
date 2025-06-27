@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using TalosTest.Character;
 using TalosTest.Visuals;
+using UnityEditor;
 using UnityEngine;
 
 namespace TalosTest.Tool
@@ -14,6 +15,19 @@ namespace TalosTest.Tool
 
         public Action<Connector> OnPickUp;
         public Action<Connector> OnDrop;
+
+#if UNITY_EDITOR
+        private static int _debugCounter;
+        private int _debugIndex;
+
+        private void Awake()
+        {
+            _debugCounter++;
+            _debugIndex = _debugCounter;
+
+            name = "Connector-" + _debugIndex;
+        }
+#endif
         
         public override void PickUp(Interactor interactor)
         {
@@ -98,5 +112,24 @@ namespace TalosTest.Tool
         {
             return "Drop";
         }
+
+#if UNITY_EDITOR
+        private void OnDrawGizmos()
+        {
+            Handles.BeginGUI();
+            
+            var style = new GUIStyle
+            {
+                fontSize = 25,
+                normal =
+                {
+                    textColor = Color.green
+                }
+            };
+            Handles.Label(LaserPoint + Vector3.up * 0.55f, _debugIndex.ToString(), style);
+            
+            Handles.EndGUI();
+        }  
+#endif
     }
 }
