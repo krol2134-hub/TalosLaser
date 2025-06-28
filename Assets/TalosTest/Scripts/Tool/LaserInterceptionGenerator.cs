@@ -10,9 +10,11 @@ namespace TalosTest.Tool
         private readonly LayerMask _layerMaskObstacle;
         
         private readonly Dictionary<LaserSegment, List<LaserSegment>> _segmentsBlockedBy = new();
+        private readonly HashSet<Vector3> _pointsSet = new();
+        
         private Dictionary<LaserSegment, float> _blockDistanceBySegment = new();
         private Dictionary<LaserSegment, InterceptionInfo> _blockPointInfosBySegment = new();
-        
+
         public LaserInterceptionGenerator(LayerMask layerMaskObstacle)
         {
             _layerMaskObstacle = layerMaskObstacle;
@@ -34,14 +36,13 @@ namespace TalosTest.Tool
                 for (var i = 0; i < allSegments.Count; i++)
                 {
                     var (mainGenerator, mainSegment) = allSegments[i];
-                    var mainColor = mainGenerator.LaserColor;
 
                     var start = mainSegment.Start.LaserPoint;
                     var end = mainSegment.End.LaserPoint;
 
                     var interceptionInfo = new InterceptionInfo(false, null, end, Vector3.Distance(start, end));
 
-                    UpdateSegmentsIntersection(allSegments, i, mainColor, start, end, ref interceptionInfo);
+                    UpdateSegmentsIntersection(allSegments, mainGenerator, i, start, end, ref interceptionInfo);
                     CheckPhysicCollision(end, start, ref interceptionInfo);
 
                     if (interceptionInfo.IsFound)
@@ -70,11 +71,11 @@ namespace TalosTest.Tool
                 iteration++;
             } 
             while (changed && iteration < MaxIterations);
-
+            
             return _blockPointInfosBySegment;
         }
 
-        private void UpdateSegmentsIntersection(List<(Generator generator, LaserSegment segment)> allSegments, int i, ColorType mainColor, Vector3 start,
+        private void UpdateSegmentsIntersection(List<(Generator generator, LaserSegment segment)> allSegments, Generator currentGenerator, int i, Vector3 start,
             Vector3 end, ref InterceptionInfo interceptionInfo)
         {
             for (var j = 0; j < allSegments.Count; j++)
@@ -85,15 +86,48 @@ namespace TalosTest.Tool
                 }
                         
                 var (otherGenerator, otherSegment) = allSegments[j];
-                if (mainColor == otherGenerator.LaserColor)        
+                if (currentGenerator.LaserColor == otherGenerator.LaserColor)        
                 {
                     continue;
                 }
+                
+                if (CanSkipConnectedSegment(allSegments, currentGenerator, otherGenerator, otherSegment))
+                {
+                    continue;
+                }                
 
                 var otherStart = otherSegment.Start.LaserPoint;
                 var otherEnd = otherSegment.End.LaserPoint;
                 CheckLaserIntersect(start, end, otherStart, otherEnd, otherSegment, ref interceptionInfo);
             }
+        }
+        
+        private bool CanSkipConnectedSegment(List<(Generator generator, LaserSegment segment)> allSegments, 
+            Generator currentGenerator, Generator otherGenerator, LaserSegment checkSegment)
+        {
+            _pointsSet.Clear();
+            
+            foreach (var (generator, segment) in allSegments)
+            {
+                if (generator == currentGenerator)
+                {
+                    _pointsSet.Add(segment.Start.LaserPoint);
+                    _pointsSet.Add(segment.End.LaserPoint);
+                }
+            }
+
+            foreach (var (generator, segment) in allSegments)
+            {
+                if (generator == otherGenerator)
+                {
+                    if (_pointsSet.Contains(checkSegment.Start.LaserPoint) || _pointsSet.Contains(checkSegment.End.LaserPoint))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void CheckLaserIntersect(Vector3 start, Vector3 end, Vector3 otherStart, Vector3 otherEnd,
