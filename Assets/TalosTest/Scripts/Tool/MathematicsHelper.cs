@@ -1,59 +1,24 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace TalosTest.Tool
 {
     public static class MathematicsHelper
     {
-        public static Dictionary<LaserSegment, BlockInfo> GetLaserSegmentBlockers(List<(Generator, LaserSegment)> allSegments)
+        public static bool CheckLasersIntersect(Vector3 a1, Vector3 a2, Vector3 b1, Vector3 b2)
         {
-            Dictionary<LaserSegment, BlockInfo> blockedSegmentInfos = new();
-            for (var i = 0; i < allSegments.Count; i++)
-            {
-                for (var j = i + 1; j < allSegments.Count; j++)
-                {
-                    var (genA, segA) = allSegments[i];
-                    var (genB, segB) = allSegments[j];
-
-                    if (genA == genB)
-                    {
-                        continue;
-                    }
-
-                    if (CheckLasersIntersect(segA, segB))
-                    {
-                        var intersection = GetLaserIntersectionPoint(segA, segB);
-
-                        blockedSegmentInfos[segA] = new BlockInfo(intersection, segB, segA);
-                        blockedSegmentInfos[segB] = new BlockInfo(intersection, segA, segB);
-                    }
-                }
-            }
-
-            return blockedSegmentInfos;
-        }
-        
-        public static bool CheckLasersIntersect(LaserSegment a, LaserSegment b)
-        {
-            var a1 = a.From.LaserPoint;
-            var a2 = a.To.LaserPoint;
-            var b1 = b.From.LaserPoint;
-            var b2 = b.To.LaserPoint;
-
-            return LinesIntersect(a1, a2, b1, b2);
+            var a = new Vector2(a1.x, a1.z);
+            var b = new Vector2(a2.x, a2.z);
+            var c = new Vector2(b1.x, b1.z);
+            var d = new Vector2(b2.x, b2.z);
+            return CheckLineSegmentsIntersect(a, b, c, d);
         }
 
-        public static Vector3 GetLaserIntersectionPoint(LaserSegment firstSegment, LaserSegment secondSegment)
+        public static Vector3 GetLaserIntersectionPoint(Vector3 a1, Vector3 a2, Vector3 b1, Vector3 b2)
         {
-            var p1 = firstSegment.From.LaserPoint;
-            var p2 = firstSegment.To.LaserPoint;
-            var q1 = secondSegment.From.LaserPoint;
-            var q2 = secondSegment.To.LaserPoint;
-
-            ClosestPointsOnTwoLines(out var c1, out var c2, p1, (p2 - p1).normalized, q1, (q2 - q1).normalized);
+            ClosestPointsOnTwoLines(out var c1, out var c2, a1, (a2 - a1).normalized, b1, (b2 - b1).normalized);
             return (c1 + c2) * 0.5f;
         }
-
+        
         public static bool ClosestPointsOnTwoLines(out Vector3 pointLine1, out Vector3 pointLine2,
             Vector3 linePoint1, Vector3 lineVec1, Vector3 linePoint2, Vector3 lineVec2)
         {

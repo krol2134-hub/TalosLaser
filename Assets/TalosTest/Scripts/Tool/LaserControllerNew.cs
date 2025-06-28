@@ -1,7 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.ProBuilder.Shapes;
 
 namespace TalosTest.Tool
 {
@@ -26,9 +26,12 @@ namespace TalosTest.Tool
         private readonly HashSet<(LaserInteractable, LaserInteractable)> _pathConflictBlockers = new();
 
         private LaserPathGenerator _laserPathGenerator;
+        private LaserInterceptionGenerator _laserInterceptionGenerator;
 
-        public Dictionary<Generator, List<List<LaserSegment>>> _segmentsbyGenerator = new();
-        
+        private readonly Dictionary<Generator, List<List<LaserSegment>>> _segmentsByGenerator = new();
+
+        private List<(Generator generator, LaserSegment segment)> _allSegments = new();
+
         private void Awake()
         {
             _generators = FindObjectsOfType<Generator>();
@@ -37,10 +40,11 @@ namespace TalosTest.Tool
 
             foreach (var connector in _generators)
             {
-                _segmentsbyGenerator.Add(connector, new List<List<LaserSegment>>());
+                _segmentsByGenerator.Add(connector, new List<List<LaserSegment>>());
             }
 
             _laserPathGenerator = new LaserPathGenerator(obstacleMask);
+            _laserInterceptionGenerator = new LaserInterceptionGenerator(obstacleMask);
         }
 
         private void OnEnable()
@@ -77,7 +81,7 @@ namespace TalosTest.Tool
                 _previousFrameInteractables.Add(laser);
             }
             
-            foreach (var kvp in _segmentsbyGenerator)
+            foreach (var kvp in _segmentsByGenerator)
             {
                 foreach (var list in kvp.Value)
                 {
@@ -105,75 +109,71 @@ namespace TalosTest.Tool
         {
             ResetAll();
 
-            DetectColorConflictsBetweenGenerators();
+            FinAllPathsByGenerators();
+            SaveAllSegments();
+            
+            var blockPointInfosBySegment = _laserInterceptionGenerator.ProcessPathInterceptions(_allSegments);
+            DisplayLaserPaths(blockPointInfosBySegment);
+        }
 
+        private void FinAllPathsByGenerators()
+        {
             foreach (var generator in _generators)
             {
                 var paths = _laserPathGenerator.FindAllPathSegments(generator);
-                _segmentsbyGenerator[generator] = paths;
+                _segmentsByGenerator[generator] = paths;
             }
+        }
 
-            var allSegments = new List<(Generator, LaserSegment)>();
-            foreach (var kvp in _segmentsbyGenerator)
+        private void SaveAllSegments()
+        {
+            _allSegments = new List<(Generator generator, LaserSegment segment)>();
+            foreach (var kvp in _segmentsByGenerator)
             {
-                var generator = kvp.Key;
                 foreach (var path in kvp.Value)
                 {
                     foreach (var segment in path)
                     {
-                        allSegments.Add((generator, segment));
+                        _allSegments.Add((kvp.Key, segment));
                     }
                 }
             }
+        }
 
-            var blockedSegmentInfos = MathematicsHelper.GetLaserSegmentBlockers(allSegments);
-            CheckPhysicalBlockers(allSegments, blockedSegmentInfos);
-            
-            foreach (var (generator, paths) in _segmentsbyGenerator)
+        private void DisplayLaserPaths(Dictionary<LaserSegment, InterceptionInfo> blockPointInfosBySegment)
+        {
+            foreach (var (generator, pathList) in _segmentsByGenerator)
             {
-                foreach (var segments in paths)
+                var currentColor = generator.LaserColor;
+                foreach (var path in pathList)
                 {
-                    foreach (var segment in segments)
+                    foreach (var segment in path)
                     {
-                        var from = segment.From;
-                        var to = segment.To;
+                        var startInteractable = segment.Start;
+                        var endInteractable = segment.End;
+                        var laserStart = startInteractable.LaserPoint;
+                        
+                        Vector3 laserEnd;
+                        if (blockPointInfosBySegment.TryGetValue(segment, out var interceptionInfo))
+                        {
+                            var dir = (endInteractable.LaserPoint - laserStart).normalized;
+                            laserEnd = laserStart + dir * interceptionInfo.Distance;
+                        }
+                        else
+                        {
+                            laserEnd = segment.End.LaserPoint;
+                            startInteractable.AddInputColor(currentColor);
+                        }
 
-                        if (blockedSegmentInfos.TryGetValue(segment, out var blockInfo))
-                        {
-                            laserVFXController.DisplayLaserEffect(generator.LaserColor, segment.From.LaserPoint, blockInfo.CollisionPoint);
-                            _currentFrameInteractables.Add(segment.From);
-                            break;
-                        }
-                        
-                        if (_pathBlockers.Contains(segment.To))
-                        {
-                            laserVFXController.DisplayLaserEffect(generator.LaserColor, segment.From.LaserPoint, segment.To.LaserPoint);
-                            _currentFrameInteractables.Add(segment.From);
-                            break;
-                        }
-                        
-                        if (_pathConflictBlockers.Contains((segment.From, segment.To)) || _pathConflictBlockers.Contains((segment.To, segment.From)))
-                        {
-                            laserVFXController.DisplayConflictLaserEffect(generator.LaserColor, segment.From, segment.To);
-                            _currentFrameInteractables.Add(segment.From);
-                            break;
-                        }
-                        
-
-                        ConnectLaser(to, generator.LaserColor);
-                        laserVFXController.DisplayLaserEffectConnection(generator.LaserColor, from.LaserPoint, to.LaserPoint);
+                        laserVFXController.DisplayLaserEffect(generator.LaserColor, laserStart, laserEnd);
+                        _currentFrameInteractables.Add(startInteractable);
                     }
                 }
             }
 
-            foreach (var info in blockedSegmentInfos.Values)
+            foreach (var interceptionInfo in blockPointInfosBySegment.Values)
             {
-                laserVFXController.DisplayHitMark(info.CollisionPoint);
-            }
-            
-            foreach (var info in _pathBlockers)
-            {
-                laserVFXController.DisplayHitMark(info.LaserPoint);
+                laserVFXController.DisplayHitMark(interceptionInfo.Point);
             }
         }
 
@@ -183,12 +183,12 @@ namespace TalosTest.Tool
             _currentFrameInteractables.Add(target);
         }
 
-        private void CheckPhysicalBlockers(List<(Generator, LaserSegment)> allSegments, Dictionary<LaserSegment, BlockInfo> blockedSegmentInfos)
+        private void CheckPhysicalBlockers(List<(Generator, LaserSegment)> _allSegments, Dictionary<LaserSegment, BlockInfo> blockedSegmentInfos)
         {
-            foreach (var (_, segment) in allSegments)
+            foreach (var (_, segment) in _allSegments)
             {
-                var from = segment.From.LaserPoint;
-                var to = segment.To.LaserPoint;
+                var from = segment.Start.LaserPoint;
+                var to = segment.End.LaserPoint;
                 var direction = (to - from).normalized;
                 var distance = Vector3.Distance(from, to);
 

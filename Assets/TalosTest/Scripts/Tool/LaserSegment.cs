@@ -2,15 +2,15 @@ namespace TalosTest.Tool
 {
     public class LaserSegment
     {
-        public LaserInteractable From { get; }
-        public LaserInteractable To { get; }
+        public LaserInteractable Start { get; }
+        public LaserInteractable End { get; }
 
-        public LaserSegment(LaserInteractable from, LaserInteractable to)
+        public LaserSegment(LaserInteractable start, LaserInteractable end)
         {
-            From = from;
-            To = to;
+            Start = start;
+            End = end;
         }
 
-        public override string ToString() => $"{From} → {To}";
+        public override string ToString() => $"{Start} → {End}";
     }
 }
