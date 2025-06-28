@@ -268,7 +268,7 @@ MonoBehaviour:
   cameraTransform: {fileID: 2987947749940792648}
   heldItemRoot: {fileID: 2940416650774007061}
   interactDistance: 2
-  connectDistance: 20
+  connectDistance: 100
   interactableLayer:
     serializedVersion: 2
     m_Bits: 128
