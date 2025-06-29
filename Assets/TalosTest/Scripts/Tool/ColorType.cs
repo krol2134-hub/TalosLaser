@@ -3,6 +3,8 @@ namespace TalosTest.Tool
     public enum ColorType
     {
         Blue,
-        Red
+        Red,
+        Blocker,
+        Conflict,
     }
 }
