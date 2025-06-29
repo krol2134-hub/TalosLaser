@@ -4,7 +4,5 @@ namespace TalosTest.Tool
     {
         Blue,
         Red,
-        Blocker,
-        Conflict,
     }
 }

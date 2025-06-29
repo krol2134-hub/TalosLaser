@@ -92,15 +92,16 @@ namespace TalosTest.Tool
         {
             _usedSpherePoints.Add(targetPoint);
 
-            if (_activeSphereEffects.ContainsKey(targetPoint))
+            var colorPreset = colorSettings.GetColorSettingsByType(colorType);
+            if (_activeSphereEffects.TryGetValue(targetPoint, out var hitEffect))
             {
+                hitEffect.UpdateColor(colorPreset.LaserSphereMainColor, colorPreset.LaserSphereAdditionalColor);
                 return;
             }
                 
-            var hitEffect = laserSphereVFXPool.Get(targetPoint);
+            hitEffect = laserSphereVFXPool.Get(targetPoint);
             _activeSphereEffects[targetPoint] = hitEffect;
 
-            var colorPreset = colorSettings.GetColorSettingsByType(colorType);
             hitEffect.UpdateColor(colorPreset.LaserSphereMainColor, colorPreset.LaserSphereAdditionalColor);
         }
 

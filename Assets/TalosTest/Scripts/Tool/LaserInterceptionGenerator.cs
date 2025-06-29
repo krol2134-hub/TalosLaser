@@ -43,7 +43,7 @@ namespace TalosTest.Tool
                     var interceptionInfo = new InterceptionInfo(false, null, end, Vector3.Distance(start, end));
 
                     UpdateSegmentsIntersection(allSegments, mainGenerator, i, start, end, ref interceptionInfo);
-                    CheckPhysicCollision(end, start, ref interceptionInfo);
+                    CheckPhysicCollision(start, end, ref interceptionInfo);
 
                     if (interceptionInfo.IsFound)
                     {
@@ -157,7 +157,7 @@ namespace TalosTest.Tool
             }
         }
 
-        private void CheckPhysicCollision(Vector3 end, Vector3 start, ref InterceptionInfo interceptionInfo)
+        private void CheckPhysicCollision(Vector3 start, Vector3 end, ref InterceptionInfo interceptionInfo)
         {
             var direction = (end - start).normalized;
             var maxDistance = Vector3.Distance(start, end);

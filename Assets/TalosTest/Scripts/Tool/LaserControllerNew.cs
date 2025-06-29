@@ -41,7 +41,7 @@ namespace TalosTest.Tool
                 _segmentsByGenerator.Add(connector, new List<List<LaserSegment>>());
             }
 
-            _laserPathGenerator = new LaserPathGenerator();
+            _laserPathGenerator = new LaserPathGenerator(obstacleMask);
             _laserInterceptionGenerator = new LaserInterceptionGenerator(obstacleMask);
         }
 
@@ -111,7 +111,6 @@ namespace TalosTest.Tool
             SaveAllSegments();
             
             var blockPointInfosBySegment = _laserInterceptionGenerator.ProcessPathInterceptions(_allSegments);
-            //TODO Back physic after refactor
             DisplayLaserPaths(new Dictionary<LaserSegment, InterceptionInfo>());
         }
 
@@ -161,14 +160,21 @@ namespace TalosTest.Tool
                             break;
                         }
                         
-                        if (segment.ColorType == ColorType.Conflict)
+                        if (segment.ConnectionState == ConnectionState.PhysicalBlocker)
+                        {
+                            laserVFXController.DisplayLaserEffectWithHit(generator.LaserColor, segment.Start.LaserPoint, segment.BlockPoint);
+                            _currentFrameInteractables.Add(segment.Start);
+                            break;
+                        }
+                        
+                        if (segment.ConnectionState == ConnectionState.Conflict)
                         {
                             laserVFXController.DisplayConflictLaserEffect(generator.LaserColor, segment.Start, segment.End);
                             _currentFrameInteractables.Add(segment.Start);
                             break;
                         }
                         
-                        if (segment.ColorType == ColorType.Blocker)
+                        if (segment.ConnectionState == ConnectionState.Blocker)
                         {
                             laserVFXController.DisplayLaserEffectWithHit(generator.LaserColor, segment.Start.LaserPoint, segment.End.LaserPoint);
                             _currentFrameInteractables.Add(segment.Start);

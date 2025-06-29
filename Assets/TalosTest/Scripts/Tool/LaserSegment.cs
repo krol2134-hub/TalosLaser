@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace TalosTest.Tool
 {
     public class LaserSegment
@@ -5,12 +7,16 @@ namespace TalosTest.Tool
         public LaserInteractable Start { get; }
         public LaserInteractable End { get; }
         public ColorType ColorType { get; }
+        public ConnectionState ConnectionState { get; }
+        public Vector3 BlockPoint { get; }
 
-        public LaserSegment(LaserInteractable start, LaserInteractable end, ColorType colorType)
+        public LaserSegment(LaserInteractable start, LaserInteractable end, ConnectionState connectionState, ColorType colorType = default, Vector3 blockPoint = default)
         {
             Start = start;
             End = end;
             ColorType = colorType;
+            ConnectionState = connectionState;
+            BlockPoint = blockPoint;
         }
 
         public bool CheckMatchingBySides(LaserSegment otherSegment)

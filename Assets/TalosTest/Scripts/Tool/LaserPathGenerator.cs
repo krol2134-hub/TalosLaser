@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace TalosTest.Tool
 {
@@ -10,6 +11,13 @@ namespace TalosTest.Tool
         private readonly HashSet<LaserSegment> _blockedSegments = new();
         private readonly Dictionary<Generator, List<List<LaserSegment>>> _allPaths = new();
         private readonly Dictionary<Generator, List<List<LaserSegment>>> _allGeneratorPaths = new();
+        
+        private readonly LayerMask _layerMaskObstacle;
+
+        public LaserPathGenerator(LayerMask layerMaskObstacle)
+        {
+            _layerMaskObstacle = layerMaskObstacle;
+        }
 
         public Dictionary<Generator, List<List<LaserSegment>>> FindAllPaths(Generator[] generators)
         {
@@ -87,7 +95,7 @@ namespace TalosTest.Tool
             var segments = new List<LaserSegment>();
             for (var i = 0; i < path.Count - 1; i++)
             {
-                segments.Add(new LaserSegment(path[i], path[i + 1], startGenerator.LaserColor));
+                segments.Add(new LaserSegment(path[i], path[i + 1], ConnectionState.Free, startGenerator.LaserColor));
             }
                         
             pathsToSave.Add(segments);
@@ -259,7 +267,7 @@ namespace TalosTest.Tool
                     {
                         if (currentSegment.CheckMatchingBySides(startChain, endChain))
                         {
-                            blockedSegment = new LaserSegment(startChain, endChain, ColorType.Conflict);
+                            blockedSegment = new LaserSegment(startChain, endChain, ConnectionState.Conflict);
                             isFoundBrokenSegment = true;
                             break;
                         }
@@ -286,7 +294,7 @@ namespace TalosTest.Tool
                 }
                 else
                 {
-                    blockedSegment = new LaserSegment(start, end, ColorType.Conflict);
+                    blockedSegment = new LaserSegment(start, end, ConnectionState.Conflict);
                     _blockedSegments.Add(blockedSegment);
                 }
             }
@@ -334,17 +342,17 @@ namespace TalosTest.Tool
 
                 if (isBlockedConnection)
                 {
-                    adjustedPath.Add(new LaserSegment(segment.Start, segment.End, ColorType.Blocker));
+                    adjustedPath.Add(new LaserSegment(segment.Start, segment.End, ConnectionState.Blocker));
                     break;
                 }
 
                 if (isBlockedSegment || isConflictSegment)
                 {
-                    adjustedPath.Add(new LaserSegment(segment.Start, segment.End, ColorType.Conflict));
+                    adjustedPath.Add(new LaserSegment(segment.Start, segment.End, ConnectionState.Conflict));
                     break;
                 }
 
-                adjustedPath.Add(new LaserSegment(segment.Start, segment.End, color));
+                adjustedPath.Add(new LaserSegment(segment.Start, segment.End, ConnectionState.Free, color));
             }
 
             return adjustedPath;
