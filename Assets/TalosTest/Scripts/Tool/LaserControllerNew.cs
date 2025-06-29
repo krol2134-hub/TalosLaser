@@ -22,8 +22,6 @@ namespace TalosTest.Tool
 
         private readonly HashSet<LaserInteractable> _previousFrameInteractables = new();
         private readonly HashSet<LaserInteractable> _currentFrameInteractables = new();
-        private readonly HashSet<LaserInteractable> _pathBlockers = new();
-        private readonly HashSet<(LaserInteractable, LaserInteractable)> _pathConflictBlockers = new();
 
         private LaserPathGenerator _laserPathGenerator;
         private LaserInterceptionGenerator _laserInterceptionGenerator;
@@ -43,7 +41,7 @@ namespace TalosTest.Tool
                 _segmentsByGenerator.Add(connector, new List<List<LaserSegment>>());
             }
 
-            _laserPathGenerator = new LaserPathGenerator(obstacleMask);
+            _laserPathGenerator = new LaserPathGenerator();
             _laserInterceptionGenerator = new LaserInterceptionGenerator(obstacleMask);
         }
 
@@ -109,19 +107,20 @@ namespace TalosTest.Tool
         {
             ResetAll();
 
-            FinAllPathsByGenerators();
+            FindPathsByGenerators();
             SaveAllSegments();
             
             var blockPointInfosBySegment = _laserInterceptionGenerator.ProcessPathInterceptions(_allSegments);
-            DisplayLaserPaths(blockPointInfosBySegment);
+            //TODO Back physic after refactor
+            DisplayLaserPaths(new Dictionary<LaserSegment, InterceptionInfo>());
         }
 
-        private void FinAllPathsByGenerators()
+        private void FindPathsByGenerators()
         {
-            foreach (var generator in _generators)
+            var pathsByGenerators = _laserPathGenerator.FindAllPaths(_generators);
+            foreach (var (generator, segments) in pathsByGenerators)
             {
-                var paths = _laserPathGenerator.FindAllPathSegments(generator);
-                _segmentsByGenerator[generator] = paths;
+                _segmentsByGenerator[generator] = segments;
             }
         }
 
@@ -161,12 +160,24 @@ namespace TalosTest.Tool
                             laserVFXController.DisplayLaserEffect(generator.LaserColor, laserStart, laserEnd);
                             break;
                         }
-                        else
+                        
+                        if (segment.ColorType == ColorType.Conflict)
                         {
-                            laserEnd = segment.End.LaserPoint;
-                            startInteractable.AddInputColor(currentColor);
-                            laserVFXController.DisplayLaserEffectConnection(generator.LaserColor, laserStart, laserEnd);
+                            laserVFXController.DisplayConflictLaserEffect(generator.LaserColor, segment.Start, segment.End);
+                            _currentFrameInteractables.Add(segment.Start);
+                            break;
                         }
+                        
+                        if (segment.ColorType == ColorType.Blocker)
+                        {
+                            laserVFXController.DisplayLaserEffectWithHit(generator.LaserColor, segment.Start.LaserPoint, segment.End.LaserPoint);
+                            _currentFrameInteractables.Add(segment.Start);
+                            break;
+                        }
+                        
+                        laserEnd = segment.End.LaserPoint;
+                        startInteractable.AddInputColor(currentColor);
+                        laserVFXController.DisplayLaserEffectConnection(generator.LaserColor, laserStart, laserEnd);
 
                         _currentFrameInteractables.Add(startInteractable);
                     }
@@ -179,15 +190,9 @@ namespace TalosTest.Tool
             }
         }
 
-        private void ConnectLaser(LaserInteractable target, ColorType currentColor)
+        private void CheckPhysicalBlockers(List<(Generator, LaserSegment)> allSegments, Dictionary<LaserSegment, BlockInfo> blockedSegmentInfos)
         {
-            target.AddInputColor(currentColor);
-            _currentFrameInteractables.Add(target);
-        }
-
-        private void CheckPhysicalBlockers(List<(Generator, LaserSegment)> _allSegments, Dictionary<LaserSegment, BlockInfo> blockedSegmentInfos)
-        {
-            foreach (var (_, segment) in _allSegments)
+            foreach (var (_, segment) in allSegments)
             {
                 var from = segment.Start.LaserPoint;
                 var to = segment.End.LaserPoint;
@@ -219,47 +224,7 @@ namespace TalosTest.Tool
                 blockedSegmentInfos[segment] = new BlockInfo(hit.point, null, null);
             }
         }
-
-        private void DetectColorConflictsBetweenGenerators()
-        {
-            _pathBlockers.Clear();
-            _pathConflictBlockers.Clear();
-
-            for (var i = 0; i < _generators.Length; i++)
-            {
-                for (var j = i + 1; j < _generators.Length; j++)
-                {
-                    var generatorA = _generators[i];
-                    var generatorB = _generators[j];
-
-                    if (generatorA.LaserColor == generatorB.LaserColor)
-                        continue;
-
-                    var paths = _laserPathGenerator.FindAllPathsBetweenGenerators(generatorA, generatorB);
-                    foreach (var path in paths)
-                    {
-                        var connectors = path.OfType<Connector>().ToList();
-                        if (connectors.Count == 0)
-                        {
-                            continue;
-                        }
-
-                        if (connectors.Count % 2 == 1)
-                        {
-                            var mid = connectors[connectors.Count / 2];
-                            _pathBlockers.Add(mid);
-                        }
-                        else
-                        {
-                            var mid1 = connectors[(connectors.Count / 2) - 1];
-                            var mid2 = connectors[connectors.Count / 2];
-                            _pathConflictBlockers.Add((mid1, mid2));
-                        }
-                    }
-                }
-            }
-        }
-
+        
 #if UNITY_EDITOR
         private bool DebugCheckPathIteration(int index)
         {
