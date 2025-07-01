@@ -1,4 +1,4 @@
-using TalosTest.VFX;
+using TalosTest.Visuals;
 
 namespace TalosTest.Pools
 {

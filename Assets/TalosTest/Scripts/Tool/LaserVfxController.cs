@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using TalosTest.Pools;
 using TalosTest.Settings;
-using TalosTest.VFX;
 using TalosTest.Visuals;
 using UnityEngine;
 

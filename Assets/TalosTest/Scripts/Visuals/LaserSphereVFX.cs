@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace TalosTest.VFX
+namespace TalosTest.Visuals
 {
     public class LaserSphereVFX : MonoBehaviour
     {
