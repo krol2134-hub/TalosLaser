@@ -121,7 +121,7 @@ namespace TalosTest.Tool
                         var isLogicalConflictSegment = false;
                         foreach (var blockedSegment in blockedSegments)
                         {
-                            if (blockedSegment.CheckMatchingBySides(segment))
+                            if (blockedSegment.CheckMatchingTwoSide(segment))
                             {
                                 isLogicalConflictSegment = true;
                                 break;

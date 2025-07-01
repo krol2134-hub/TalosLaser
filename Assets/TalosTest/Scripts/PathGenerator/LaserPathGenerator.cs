@@ -234,7 +234,7 @@ namespace TalosTest.PathGenerator
                     var currentSegment = currentPath[i + j];
                     var otherSegment = otherPath[j];
                     
-                    if (!currentSegment.CheckMatchingBySides(otherSegment))
+                    if (!currentSegment.CheckMatchingTwoSide(otherSegment))
                     {
                         isMatched = false;
                         break;
@@ -261,7 +261,7 @@ namespace TalosTest.PathGenerator
                     {
                         foreach (var otherSegment in laserPath.Segments)
                         {
-                            if (otherSegment.CheckMatchingBySides(start, end))
+                            if (otherSegment.CheckMatchingOneSide(start, end))
                             {
                                 var newCollisionInfo = new CollisionInfo(interceptionInfo.Point, interceptionInfo.Distance);
                                 laserPath.UpdateBlockStatus(BlockReason.LineIntersection);
@@ -368,7 +368,7 @@ namespace TalosTest.PathGenerator
 
         private bool IsSegmentBlocked(LaserSegment segment)
         {
-            return _blockedSegments.Any(s => s.CheckMatchingBySides(segment));
+            return _blockedSegments.Any(s => s.CheckMatchingTwoSide(segment));
         }
     }
 }

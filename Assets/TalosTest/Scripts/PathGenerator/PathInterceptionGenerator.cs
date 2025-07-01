@@ -16,6 +16,8 @@ namespace TalosTest.PathGenerator
         private Dictionary<(LaserInteractable, LaserInteractable), InterceptionInfo> _blockPointInfosBySegment = new();
         
         private Dictionary<Generator, List<LaserPath>> _allPaths;
+        private Dictionary<(LaserInteractable, LaserInteractable), float> _newSegmentBlockedDistances;
+        private Dictionary<(LaserInteractable, LaserInteractable), InterceptionInfo> _newSegmentBlockPointInfos;
         
         public Dictionary<(LaserInteractable, LaserInteractable), InterceptionInfo> ProcessPathInterceptions(Dictionary<Generator, List<LaserPath>> allPaths)
         {
@@ -30,8 +32,8 @@ namespace TalosTest.PathGenerator
                 
                 changed = false;
 
-                var newSegmentBlockedDistances = new Dictionary<(LaserInteractable, LaserInteractable), float>();
-                var newSegmentBlockPointInfos = new Dictionary<(LaserInteractable, LaserInteractable), InterceptionInfo>();
+                _newSegmentBlockedDistances = new Dictionary<(LaserInteractable, LaserInteractable), float>();
+                _newSegmentBlockPointInfos = new Dictionary<(LaserInteractable, LaserInteractable), InterceptionInfo>();
                 
                 foreach (var (generator, laserPaths) in _allPaths)
                 {
@@ -57,16 +59,16 @@ namespace TalosTest.PathGenerator
                                     continue;
                                 }
                                 
-                                MakeInterception(currentSegment, interceptionInfo, newSegmentBlockedDistances, newSegmentBlockPointInfos);
+                                MakeInterception(currentSegment, interceptionInfo);
                                 changed = true;
                             }
                         }
                     }
                 }
                 
-                _blockDistanceBySegment = newSegmentBlockedDistances;
-                _blockPointInfosBySegment = newSegmentBlockPointInfos;
-
+                _blockDistanceBySegment = _newSegmentBlockedDistances;
+                _blockPointInfosBySegment = _newSegmentBlockPointInfos;
+                
                 iteration++;
             } 
             while (changed && iteration < MaxIterations);
@@ -130,16 +132,8 @@ namespace TalosTest.PathGenerator
             var distanceFromCurrent = Vector3.Distance(currentStartPoint, intersectionPoint);
             var distanceFromConflict = Vector3.Distance(conflictStartPoint, intersectionPoint);
             
-            var currentKey = (currentSegment.Start, currentSegment.End);
-            var reverseKey = (currentSegment.End, currentSegment.Start);
             var conflictKey = (conflictSegment.Start, conflictSegment.End);
             var conflictReverseKey = (conflictSegment.End, conflictSegment.Start);
-
-            if (_blockDistanceBySegment.ContainsKey(reverseKey) || 
-                _blockDistanceBySegment.ContainsKey(conflictReverseKey))
-            {
-                return;
-            }
             
             var isHasPriorityDistance = _blockDistanceBySegment.TryGetValue(conflictKey, out var previousDist) || _blockDistanceBySegment.TryGetValue(conflictReverseKey, out previousDist);
             if (isHasPriorityDistance && previousDist < distanceFromConflict - Mathf.Epsilon)
@@ -153,9 +147,7 @@ namespace TalosTest.PathGenerator
             }
         }
 
-        private void MakeInterception(LaserSegment currentSegment, InterceptionInfo interceptionInfo,
-            Dictionary<(LaserInteractable, LaserInteractable), float> newSegmentBlockedDistances, 
-            Dictionary<(LaserInteractable, LaserInteractable), InterceptionInfo> newSegmentBlockPointInfos)
+        private void MakeInterception(LaserSegment currentSegment, InterceptionInfo interceptionInfo)
         {
             var conflictSegment = interceptionInfo.Segment;
             var intersectionPoint = interceptionInfo.Point;
@@ -163,14 +155,7 @@ namespace TalosTest.PathGenerator
             var distanceToIntersection = Vector3.Distance(conflictSegment.StartPoint, intersectionPoint);
 
             var currentKey = (currentSegment.Start, currentSegment.End);
-            var reverseKey = (currentSegment.End, currentSegment.Start);
             var conflictKey = (conflictSegment.Start, conflictSegment.End);
-            var conflictReverseKey = (conflictSegment.End, conflictSegment.Start);
-
-            if (newSegmentBlockedDistances.ContainsKey(reverseKey) || newSegmentBlockedDistances.ContainsKey(conflictReverseKey))
-            {
-                return;
-            }            
             
             var isCurrentBlocked = currentSegment.SegmentStatus == SegmentStatus.PhysicalBlocker;
             var isConflictBlocked = conflictSegment.SegmentStatus == SegmentStatus.PhysicalBlocker;
@@ -180,118 +165,118 @@ namespace TalosTest.PathGenerator
             
             if (hasCurrentPriority && hasConflictPriority)
             {
-                var isPriorityNow = !newSegmentBlockedDistances.TryGetValue(currentKey, out var existingDistance) || 
+                var isPriorityNow = !_newSegmentBlockedDistances.TryGetValue(currentKey, out var existingDistance) || 
                                      interceptionDistance < existingDistance - Mathf.Epsilon;
 
-                var isConflictPriorityNow = !newSegmentBlockedDistances.TryGetValue(conflictKey, out var existingConflictDistance) || 
+                var isConflictPriorityNow = !_newSegmentBlockedDistances.TryGetValue(conflictKey, out var existingConflictDistance) || 
                                              distanceToIntersection < existingConflictDistance - Mathf.Epsilon;
-
+                
                 if (isPriorityNow && isConflictPriorityNow)
                 {
-                    RemoveInterception(currentSegment, conflictSegment);
-                    AddInterception(currentSegment, conflictSegment);
-
-                    newSegmentBlockedDistances[currentKey] = interceptionDistance;
-                    newSegmentBlockPointInfos[currentKey] = interceptionInfo;
-
-                    newSegmentBlockedDistances[conflictKey] = distanceToIntersection;
-                    newSegmentBlockPointInfos[conflictKey] = new InterceptionInfo(true, currentSegment, intersectionPoint, distanceToIntersection);
+                    var conflictInterception = new InterceptionInfo(true, currentSegment, intersectionPoint, distanceToIntersection);
+                    AddInterception(currentSegment, interceptionInfo);
+                    AddInterception(conflictSegment, conflictInterception);
                 }
             }
             else
             {
-                RemoveInterception(currentSegment, conflictSegment);
-                
-                newSegmentBlockedDistances.Remove(currentKey);
-                newSegmentBlockedDistances.Remove(conflictKey);
-
-                newSegmentBlockPointInfos.Remove(currentKey);
-                newSegmentBlockPointInfos.Remove(conflictKey);
-            }
-        }
-
-        private void AddInterception(LaserSegment currentSegment, LaserSegment conflictSegment)
-        {
-            AddSegmentChain(currentSegment);
-            AddSegmentChain(conflictSegment);
-        }
-
-        private void AddSegmentChain(LaserSegment sourceSegment)
-        {
-            var pathsWithIndex = FindPathContainingSegment(sourceSegment);
-            if (pathsWithIndex is not { Count: > 0 }) 
-                return;
-
-            foreach (var (startIndex, path) in pathsWithIndex)
-            {
-                if (startIndex == -1)
-                {
-                    return;
-                }
-            
-                for (var i = startIndex; i < path.Segments.Count; i++)
-                {
-                    var segment = path.Segments[i];
-                    var key = (segment.Start, segment.End);
-                
-                    if (!_segmentsBlockedBy.Contains(key))
-                    {
-                        _segmentsBlockedBy.Add(key);
-                    }
-                }   
-            }
-        }
-
-        private void RemoveInterception(LaserSegment currentSegment, LaserSegment conflictSegment)
-        {
-            RemoveSegmentChain(currentSegment, conflictSegment);
-            RemoveSegmentChain(conflictSegment, currentSegment);
-        }
-
-        private void RemoveSegmentChain(LaserSegment sourceSegment, LaserSegment targetSegment)
-        {
-            var pathsWithIndex = FindPathContainingSegment(sourceSegment);
-            if (pathsWithIndex is not { Count: > 0 })
-            {
-                return;
-            }
-            
-            foreach (var (startIndex, path) in pathsWithIndex)
-            {
-                if (startIndex == -1)
-                {
-                    return;
-                }
-
-                for (var i = startIndex; i < path.Segments.Count; i++)
-                {
-                    var segment = path.Segments[i];
-                    var key = (segment.Start, segment.End);
-
-                    if (!_segmentsBlockedBy.Contains(key))
-                    {
-                        _segmentsBlockedBy.Remove(key);
-                    }
-                }
+                RemoveInterception(currentSegment);
+                RemoveInterception(conflictSegment);
             }
         }
         
-        private List<(int, LaserPath)> FindPathContainingSegment(LaserSegment segment)
+        private void TryApplyOneWayInterception(LaserSegment segment, InterceptionInfo interceptionInfo)
         {
-            var pathsWithIndex = new List<(int, LaserPath)>();
+            var interceptionDistance = interceptionInfo.Distance;
+
+            var isCurrentBlocked = segment.SegmentStatus == SegmentStatus.PhysicalBlocker;
+
+            var hasCurrentPriority = !isCurrentBlocked || interceptionDistance < segment.CollisionInfo.Distance - Mathf.Epsilon;
+
+            if (hasCurrentPriority)
+            {
+                var currentPreset = (segment.Start, segment.End);
+                _newSegmentBlockedDistances[currentPreset] = interceptionDistance;
+                _newSegmentBlockPointInfos[currentPreset] = interceptionInfo;
+
+                if (!_segmentsBlockedBy.Contains(currentPreset))
+                {
+                    _segmentsBlockedBy.Add(currentPreset);
+                }            }
+        }
+
+        private void AddInterception(LaserSegment sourceSegment, InterceptionInfo interceptionInfo)
+        {
+            var segmentPreset = (sourceSegment.Start, sourceSegment.End);
+            
+            _newSegmentBlockedDistances[segmentPreset] = interceptionInfo.Distance;
+            _newSegmentBlockPointInfos[segmentPreset] = interceptionInfo;
+
+            if (!_segmentsBlockedBy.Contains(segmentPreset))
+            {
+                _segmentsBlockedBy.Add(segmentPreset);
+            }
+
+            var reverseSegment = GetReversedSegment(sourceSegment);
+            if (reverseSegment == null)
+            {
+                return;
+            }
+            
+            var reverseKey = (reverseSegment.Start, reverseSegment.End);
+            if (_segmentsBlockedBy.Contains(reverseKey))
+            {
+                return;
+            }
+            
+            var reverseDistance = Vector3.Distance(reverseSegment.StartPoint, interceptionInfo.Point);
+            var reverseInfo = new InterceptionInfo(true, interceptionInfo.Segment, interceptionInfo.Point, reverseDistance);
+
+            TryApplyOneWayInterception(reverseSegment, reverseInfo);
+        }
+
+        private void RemoveInterception(LaserSegment sourceSegment)
+        {
+            var segmentPreset = (sourceSegment.Start, sourceSegment.End);
+            
+            _newSegmentBlockedDistances.Remove(segmentPreset);
+            _newSegmentBlockPointInfos.Remove(segmentPreset);
+            
+            if (_segmentsBlockedBy.Contains(segmentPreset))
+            {
+                _segmentsBlockedBy.Remove(segmentPreset);
+            }
+            
+            var reverseSegment = GetReversedSegment(sourceSegment);
+            if (reverseSegment == null)
+            {
+                return;
+            }
+            
+            var reversePreset = (reverseSegment.Start, reverseSegment.End);
+            if (_segmentsBlockedBy.Contains(reversePreset))
+            {
+                _segmentsBlockedBy.Remove(reversePreset);
+            }
+        }
+
+        private LaserSegment GetReversedSegment(LaserSegment sourceSegment)
+        {
             foreach (var laserPaths in _allPaths.Values)
             {
-                for (var index = 0; index < laserPaths.Count; index++)
+                foreach (var path in laserPaths)
                 {
-                    var path = laserPaths[index];
-                    if (path.Segments.Any(s => s.Start == segment.Start && s.End == segment.End))
+                    var reverseSegment = path.Segments.FirstOrDefault(s =>
+                        s.Start == sourceSegment.End && s.End == sourceSegment.Start);
+
+                    if (reverseSegment != null)
                     {
-                        pathsWithIndex.Add((index, path));
+                        return reverseSegment;
                     }
                 }
             }
-            
-            return pathsWithIndex;
+
+            return null;
         }
     }
 }

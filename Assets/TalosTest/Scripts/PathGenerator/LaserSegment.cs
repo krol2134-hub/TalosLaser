@@ -31,15 +31,28 @@ namespace TalosTest.PathGenerator
             CollisionInfo = collisionInfo;
         }
 
-        public bool CheckMatchingBySides(LaserSegment otherSegment)
+        public bool CheckMatchingOneSide(LaserSegment otherSegment)
         { 
             var otherStart = otherSegment.Start;
             var otherEnd = otherSegment.End;
             
-            return CheckMatchingBySides(otherStart, otherEnd);
+            return CheckMatchingOneSide(otherStart, otherEnd);
         }
         
-        public bool CheckMatchingBySides(LaserInteractable otherStart, LaserInteractable otherEnd)
+        public bool CheckMatchingOneSide(LaserInteractable otherStart, LaserInteractable otherEnd)
+        { 
+            return Start == otherStart && End == otherEnd;
+        }
+        
+        public bool CheckMatchingTwoSide(LaserSegment otherSegment)
+        { 
+            var otherStart = otherSegment.Start;
+            var otherEnd = otherSegment.End;
+            
+            return CheckMatchingTwoSide(otherStart, otherEnd);
+        }
+        
+        public bool CheckMatchingTwoSide(LaserInteractable otherStart, LaserInteractable otherEnd)
         {
             var isOneSideMatch = Start == otherStart && End == otherEnd;
             var isOtherSideMatch = Start == otherEnd && End == otherStart;
