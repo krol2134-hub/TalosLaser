@@ -8,23 +8,25 @@ namespace TalosTest.Tool
     {
         [SerializeField] private LayerMask obstacleMask;
         [SerializeField] private LaserVfxController laserVFXController;
+        [SerializeField] private int updateFrameRate = 10;
 
 #if UNITY_EDITOR
         [SerializeField] private int pathCountDebug;
         [SerializeField, Range(-1, 10)] private int maxPathCountDebug = -1;
         [SerializeField, Range(-1, 10)] private int onlyPathTargetDebug = -1;
 #endif
+        private readonly HashSet<LaserInteractable> _previousFrameInteractables = new();
+        private readonly HashSet<LaserInteractable> _currentFrameInteractables = new();
+        private readonly HashSet<Vector3> _hitMarkPositions = new();
 
         private Generator[] _generators;
         private Receiver[] _receivers;
         private Connector[] _connectors;
 
-        private readonly HashSet<LaserInteractable> _previousFrameInteractables = new();
-        private readonly HashSet<LaserInteractable> _currentFrameInteractables = new();
-        private readonly HashSet<Vector3> _hitMarkPositions = new();
-
         private LaserPathGenerator _laserPathGenerator;
-        
+
+        private int _frameCount;
+
         private void Awake()
         {
             _generators = FindObjectsOfType<Generator>();
@@ -54,6 +56,13 @@ namespace TalosTest.Tool
 
         private void Update()
         {
+            _frameCount++;
+
+            if (_frameCount % 10 != 0)
+            {
+                return;
+            }
+            
             UpdateGeneratorLasers();
         }
 
@@ -109,54 +118,67 @@ namespace TalosTest.Tool
                         var startInteractable = segment.Start;
                         var endInteractable = segment.End;
 
-                        if (segment.SegmentStatus is SegmentStatus.PhysicalBlocker or SegmentStatus.LineInception)
+                        if (TryApplyPhysicalBlocks(segment, generator))
                         {
-                            var collisionPoint = segment.CollisionInfo.Point;
-                            laserVFXController.DisplayLaserEffect(generator.Color, segment.StartPoint, collisionPoint);
-                            _currentFrameInteractables.Add(segment.Start);
-                            _hitMarkPositions.Add(collisionPoint);
                             break;
                         }
                         
-                        var isLogicalConflictSegment = false;
-                        foreach (var blockedSegment in blockedSegments)
+                        if (TryApplySegmentLogicalConflict(blockedSegments, segment, generator))
                         {
-                            if (blockedSegment.CheckMatchingTwoSide(segment))
-                            {
-                                isLogicalConflictSegment = true;
-                                break;
-                            }
-                        }
-
-                        if (isLogicalConflictSegment)
-                        {
-                            var targetPoint = CalculateMiddleConflictPosition(segment);
-                            laserVFXController.DisplayLaserEffect(generator.Color, segment.StartPoint, targetPoint);
-                            _currentFrameInteractables.Add(segment.Start);
-                            _hitMarkPositions.Add(targetPoint);
                             break;
                         }
 
-                        if (blockedInteractables.Contains(endInteractable))
+                        if (TryApplyBlockLogicalConflict(blockedInteractables, endInteractable, generator, segment))
                         {
-                            laserVFXController.DisplayLaserEffect(generator.Color, segment.StartPoint, endInteractable.LaserPoint);
-                            _currentFrameInteractables.Add(segment.Start);
                             break;
                         }
                         
-                        endInteractable.AddInputColor(currentColor);
-                        laserVFXController.DisplayLaserEffectConnection(generator.Color, segment.StartPoint, segment.EndPoint);
-
-                        _currentFrameInteractables.Add(startInteractable);
-                        _currentFrameInteractables.Add(endInteractable);
+                        ApplyNormalLaser(endInteractable, currentColor, generator, segment, startInteractable);
                     }
                 }
             }
             
-            foreach (var hitMarkPosition in _hitMarkPositions)
+            DisplayHitMarks();
+        }
+        
+        private bool TryApplyPhysicalBlocks(LaserSegment segment, Generator generator)
+        {
+            if (segment.SegmentStatus is not (SegmentStatus.PhysicalBlocker or SegmentStatus.LineInception))
             {
-                laserVFXController.DisplayHitMark(hitMarkPosition);
+                return false;
+            }       
+            
+            var collisionPoint = segment.CollisionInfo.Point;
+            laserVFXController.DisplayLaserEffect(generator.Color, segment.StartPoint, collisionPoint);
+            _currentFrameInteractables.Add(segment.Start);
+            _hitMarkPositions.Add(collisionPoint);
+            
+            return true;
+        }
+
+        private bool TryApplySegmentLogicalConflict(HashSet<LaserSegment> blockedSegments, LaserSegment segment, Generator generator)
+        {
+            var isLogicalConflictSegment = false;
+            foreach (var blockedSegment in blockedSegments)
+            {
+                if (blockedSegment.CheckMatchingTwoSide(segment))
+                {
+                    isLogicalConflictSegment = true;
+                    break;
+                }
             }
+
+            if (!isLogicalConflictSegment)
+            {
+                return false;
+            }
+            
+            var targetPoint = CalculateMiddleConflictPosition(segment);
+            laserVFXController.DisplayLaserEffect(generator.Color, segment.StartPoint, targetPoint);
+            _currentFrameInteractables.Add(segment.Start);
+            _hitMarkPositions.Add(targetPoint);
+            
+            return true;
         }
 
         private static Vector3 CalculateMiddleConflictPosition(LaserSegment segment)
@@ -167,11 +189,44 @@ namespace TalosTest.Tool
             return targetPoint;
         }
 
-#if UNITY_EDITOR
-        private bool DebugCheckPathIteration(int index)
+        private bool TryApplyBlockLogicalConflict(HashSet<LaserInteractable> blockedInteractables, LaserInteractable endInteractable,
+            Generator generator, LaserSegment segment)
         {
-            if (onlyPathTargetDebug > 0 && index != onlyPathTargetDebug - 1)
-                return true;
+            if (!blockedInteractables.Contains(endInteractable))
+            {
+                return false;
+            }
+            
+            laserVFXController.DisplayLaserEffect(generator.Color, segment.StartPoint, endInteractable.LaserPoint);
+            _currentFrameInteractables.Add(segment.Start);
+            
+            return true;
+        }
+
+        private void ApplyNormalLaser(LaserInteractable endInteractable, ColorType currentColor, Generator generator,
+            LaserSegment segment, LaserInteractable startInteractable)
+        {
+            endInteractable.AddInputColor(currentColor);
+
+            _currentFrameInteractables.Add(startInteractable);
+            _currentFrameInteractables.Add(endInteractable);
+            
+            laserVFXController.DisplayLaserEffectConnection(generator.Color, segment.StartPoint, segment.EndPoint);
+        }
+
+        private void DisplayHitMarks()
+        {
+            foreach (var hitMarkPosition in _hitMarkPositions)
+            {
+                laserVFXController.DisplayHitMark(hitMarkPosition);
+            }
+        }
+        
+#if UNIY_EDITOR
+       private bool DebugCheckPathIteration(int index)
+       {
+           if (onlyPathTargetDebug > 0 && index != onlyPathTargetDebug - 1)
+               return true;
 
             if (maxPathCountDebug > 0 && index > maxPathCountDebug - 1)
                 return true;
