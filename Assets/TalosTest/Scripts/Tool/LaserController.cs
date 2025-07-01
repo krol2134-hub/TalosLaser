@@ -108,13 +108,13 @@ namespace TalosTest.Tool
                     {
                         var startInteractable = segment.Start;
                         var endInteractable = segment.End;
-                        var laserStart = startInteractable.LaserPoint;
 
-                        if (segment.ConnectionState is ConnectionState.PhysicalBlocker or ConnectionState.LineInception)
+                        if (segment.SegmentStatus is SegmentStatus.PhysicalBlocker or SegmentStatus.LineInception)
                         {
-                            laserVFXController.DisplayLaserEffect(generator.Color, segment.Start.LaserPoint, segment.BlockPoint);
+                            var collisionPoint = segment.CollisionInfo.Point;
+                            laserVFXController.DisplayLaserEffect(generator.Color, segment.StartPoint, collisionPoint);
                             _currentFrameInteractables.Add(segment.Start);
-                            _hitMarkPositions.Add(segment.BlockPoint);
+                            _hitMarkPositions.Add(collisionPoint);
                             break;
                         }
                         
@@ -131,7 +131,7 @@ namespace TalosTest.Tool
                         if (isLogicalConflictSegment)
                         {
                             var targetPoint = CalculateMiddleConflictPosition(segment);
-                            laserVFXController.DisplayLaserEffect(generator.Color, segment.Start.LaserPoint, targetPoint);
+                            laserVFXController.DisplayLaserEffect(generator.Color, segment.StartPoint, targetPoint);
                             _currentFrameInteractables.Add(segment.Start);
                             _hitMarkPositions.Add(targetPoint);
                             break;
@@ -139,14 +139,13 @@ namespace TalosTest.Tool
 
                         if (blockedInteractables.Contains(endInteractable))
                         {
-                            laserVFXController.DisplayLaserEffect(generator.Color, startInteractable.LaserPoint, endInteractable.LaserPoint);
+                            laserVFXController.DisplayLaserEffect(generator.Color, segment.StartPoint, endInteractable.LaserPoint);
                             _currentFrameInteractables.Add(segment.Start);
                             break;
                         }
                         
-                        var laserEnd = segment.End.LaserPoint;
                         endInteractable.AddInputColor(currentColor);
-                        laserVFXController.DisplayLaserEffectConnection(generator.Color, laserStart, laserEnd);
+                        laserVFXController.DisplayLaserEffectConnection(generator.Color, segment.StartPoint, segment.EndPoint);
 
                         _currentFrameInteractables.Add(startInteractable);
                         _currentFrameInteractables.Add(endInteractable);
@@ -162,9 +161,9 @@ namespace TalosTest.Tool
 
         private static Vector3 CalculateMiddleConflictPosition(LaserSegment segment)
         {
-            var direction = segment.End.LaserPoint - segment.Start.LaserPoint;
+            var direction = segment.EndPoint - segment.StartPoint;
             var distance = direction.magnitude / 2;
-            var targetPoint = segment.Start.LaserPoint + direction.normalized * distance;
+            var targetPoint = segment.StartPoint + direction.normalized * distance;
             return targetPoint;
         }
 

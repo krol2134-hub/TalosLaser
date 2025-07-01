@@ -9,27 +9,26 @@ namespace TalosTest.PathGenerator
         public LaserInteractable End { get; }
         public Vector3 StartPoint => Start.LaserPoint;
         public Vector3 EndPoint => End.LaserPoint;
+        
         public ColorType ColorType { get; }
-        public ConnectionState ConnectionState { get; private set; }
-        public Vector3 BlockPoint { get; private set;}
-        public float BlockDistance { get; private set;}
+        public SegmentStatus SegmentStatus { get; private set; }
+        
+        public CollisionInfo CollisionInfo { get; private set;}
 
-        public LaserSegment(LaserInteractable start, LaserInteractable end, ConnectionState connectionState, ColorType colorType = default,
-            Vector3 blockPoint = default, float blockDistance = default)
+        public LaserSegment(LaserInteractable start, LaserInteractable end, SegmentStatus segmentStatus, ColorType colorType,
+            CollisionInfo collisionInfo = default)
         {
             Start = start;
             End = end;
             ColorType = colorType;
-            ConnectionState = connectionState;
-            BlockDistance = blockDistance;
-            BlockPoint = blockPoint;
+            SegmentStatus = segmentStatus;
+            CollisionInfo = collisionInfo;
         }
 
-        public void UpdateBlockState(ConnectionState newState, Vector3 blockPoint, float blockDistance)
+        public void UpdateStatusState(SegmentStatus newState, CollisionInfo collisionInfo)
         {
-            ConnectionState = newState;
-            BlockPoint = blockPoint;
-            BlockDistance = blockDistance;
+            SegmentStatus = newState;
+            CollisionInfo = collisionInfo;
         }
 
         public bool CheckMatchingBySides(LaserSegment otherSegment)

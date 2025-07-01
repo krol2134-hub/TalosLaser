@@ -70,7 +70,7 @@ namespace TalosTest.PathGenerator
                     paths.Add(laserPath);
                 }
 
-                var isIncompletePath = laserPath.Type != PathType.Complete && laserPath.Type != PathType.Blocked;
+                var isIncompletePath = laserPath.Status != PathStatus.Complete && laserPath.Status != PathStatus.Blocked;
                 if (!isIncompletePath)
                 {
                     continue;
@@ -93,7 +93,7 @@ namespace TalosTest.PathGenerator
             
             var color = startGenerator.Color;
             
-            var pathType = PathType.Incomplete;
+            var pathType = PathStatus.Incomplete;
             var blockReason = BlockReason.None;
 
             for (var i = 0; i < path.Count - 1; i++)
@@ -106,41 +106,41 @@ namespace TalosTest.PathGenerator
                 if (CheckPhysicCollision(startPosition, endPosition, out var hitInfo))
                 {
                     blockReason = BlockReason.PhysicalObstacle;
-                    pathType = PathType.Blocked;
+                    pathType = PathStatus.Blocked;
                     
-                    segments.Add(new LaserSegment(startConnection, endConnection, ConnectionState.PhysicalBlocker, color,
-                        hitInfo.HitPoint, hitInfo.Distance));
+                    var newCollisionInfo = new CollisionInfo(hitInfo.Point, hitInfo.Distance);
+                    segments.Add(new LaserSegment(startConnection, endConnection, SegmentStatus.PhysicalBlocker, color, newCollisionInfo));
                     
                     break;
                 }
 
-                segments.Add(new LaserSegment(startConnection, endConnection, ConnectionState.Free, color));
+                segments.Add(new LaserSegment(startConnection, endConnection, SegmentStatus.Free, color));
             }
 
             pathType = GetPathStatus(startGenerator, path[^1], pathType);
 
-            return new LaserPath(segments, pathType, startGenerator, blockReason);
+            return new LaserPath(segments, startGenerator, pathType, blockReason);
         }
 
-        private static PathType GetPathStatus(Generator startGenerator, LaserInteractable end, PathType pathType)
+        private static PathStatus GetPathStatus(Generator startGenerator, LaserInteractable end, PathStatus pathStatus)
         {
-            if (pathType == PathType.Blocked)
+            if (pathStatus == PathStatus.Blocked)
             {
-                return pathType;
+                return pathStatus;
             }
             
             if (end.Type == InteractableType.Receiver)
             {
-                pathType = PathType.CompleteReceiver;
+                pathStatus = PathStatus.CompleteReceiver;
             }
             else
             {
                 var isOtherGenerator = end.Type == InteractableType.Generator && end != startGenerator;
                 
-                pathType = isOtherGenerator ? PathType.Complete : PathType.Incomplete;
+                pathStatus = isOtherGenerator ? PathStatus.Complete : PathStatus.Incomplete;
             }
 
-            return pathType;
+            return pathStatus;
         }
 
         private bool CheckPhysicCollision(Vector3 start, Vector3 end, out CollisionInfo collisionInfo)
@@ -149,7 +149,7 @@ namespace TalosTest.PathGenerator
             if (_collisionCache.TryGetValue(collisionPosition, out var cachedInfo))
             {
                 collisionInfo = cachedInfo;
-                return cachedInfo.IsHit;
+                return true;
             }
 
             var direction = (end - start).normalized;
@@ -158,7 +158,7 @@ namespace TalosTest.PathGenerator
             if (Physics.Raycast(start, direction, out var hit, maxDistance, _layerMaskObstacle))
             {
                 var distanceToHit = Vector3.Distance(start, hit.point);
-                collisionInfo = new CollisionInfo(true, null, hit.point, distanceToHit);
+                collisionInfo = new CollisionInfo(hit.point, distanceToHit);
                 _collisionCache[collisionPosition] = collisionInfo;
                 
                 return true;
@@ -177,7 +177,7 @@ namespace TalosTest.PathGenerator
 
                 foreach (var path in paths)
                 {
-                    if (path.Type == PathType.Complete)
+                    if (path.Status == PathStatus.Complete)
                     {
                         completePaths.Add(path);
                     }
@@ -186,7 +186,7 @@ namespace TalosTest.PathGenerator
                 var filteredPaths = new List<LaserPath>();
                 foreach (var path in paths)
                 {
-                    if (path.Type != PathType.Incomplete)
+                    if (path.Status != PathStatus.Incomplete)
                     {
                         filteredPaths.Add(path);
                         continue;
@@ -208,7 +208,7 @@ namespace TalosTest.PathGenerator
                     }
                 }
 
-                filteredPaths.Sort((a, b) => a.Type.CompareTo(b.Type));
+                filteredPaths.Sort((a, b) => a.Status.CompareTo(b.Status));
                 allPaths[key] = filteredPaths;
             }
         }
@@ -263,9 +263,9 @@ namespace TalosTest.PathGenerator
                         {
                             if (otherSegment.CheckMatchingBySides(start, end))
                             {
-                                laserPath.Type = PathType.Blocked;
-                                laserPath.BlockReason = BlockReason.LineIntersection;
-                                otherSegment.UpdateBlockState(ConnectionState.LineInception, interceptionInfo.Point, interceptionInfo.Distance);
+                                var newCollisionInfo = new CollisionInfo(interceptionInfo.Point, interceptionInfo.Distance);
+                                laserPath.UpdateBlockStatus(BlockReason.LineIntersection);
+                                otherSegment.UpdateStatusState(SegmentStatus.LineInception, newCollisionInfo);
                             }
                         }
                     }
@@ -344,7 +344,7 @@ namespace TalosTest.PathGenerator
             {
                 foreach (var path in paths)
                 {
-                    if (path.Type != PathType.Complete)
+                    if (path.Status != PathStatus.Complete)
                     {
                         continue;
                     }

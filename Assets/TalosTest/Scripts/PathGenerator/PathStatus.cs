@@ -1,6 +1,6 @@
 namespace TalosTest.PathGenerator
 {
-    public enum PathType
+    public enum PathStatus
     {
         Complete,
         CompleteReceiver,

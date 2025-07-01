@@ -172,11 +172,11 @@ namespace TalosTest.PathGenerator
                 return;
             }            
             
-            var isCurrentBlocked = currentSegment.ConnectionState == ConnectionState.PhysicalBlocker;
-            var isConflictBlocked = conflictSegment.ConnectionState == ConnectionState.PhysicalBlocker;
+            var isCurrentBlocked = currentSegment.SegmentStatus == SegmentStatus.PhysicalBlocker;
+            var isConflictBlocked = conflictSegment.SegmentStatus == SegmentStatus.PhysicalBlocker;
 
-            var hasCurrentPriority = !isCurrentBlocked || interceptionDistance < currentSegment.BlockDistance - Mathf.Epsilon;
-            var hasConflictPriority = !isConflictBlocked || distanceToIntersection < conflictSegment.BlockDistance - Mathf.Epsilon;
+            var hasCurrentPriority = !isCurrentBlocked || interceptionDistance < currentSegment.CollisionInfo.Distance - Mathf.Epsilon;
+            var hasConflictPriority = !isConflictBlocked || distanceToIntersection < conflictSegment.CollisionInfo.Distance - Mathf.Epsilon;
             
             if (hasCurrentPriority && hasConflictPriority)
             {

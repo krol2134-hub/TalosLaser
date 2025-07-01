@@ -1,4 +1,3 @@
-using TalosTest.Tool;
 using UnityEngine;
 
 namespace TalosTest.PathGenerator

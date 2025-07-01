@@ -1,6 +1,6 @@
 namespace TalosTest.PathGenerator
 {
-    public enum ConnectionState
+    public enum SegmentStatus
     {
         Free,
         Blocker,
