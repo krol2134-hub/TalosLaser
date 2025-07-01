@@ -248,7 +248,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f28b3f56c7e84957814796f83951301c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  animationTarget: {fileID: 8725269792519458972}
+  animationTarget: {fileID: 3936947087906951909}
   rotationSpeed: 1
   translationAmplitude: 0.5
   translationFrequency: 2
