@@ -1,30 +1,16 @@
-﻿using TalosTest.Character;
-using TalosTest.Visuals;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace TalosTest.Tool
 {
-    public class Generator : LaserInteractable, IGenerator
+    public class Generator : LaserInteractable
     {
-        [SerializeField] private ColorType laserColor;
-        [SerializeField] private LaserEffect laserEffectEffectPrefab;
+        [SerializeField] private ColorType color;
         
-        public ColorType LaserColor => laserColor;
-        public LaserEffect LaserEffectEffectPrefab => laserEffectEffectPrefab;
+        public ColorType Color => color;
 
         public override bool CanConnectColor(ColorType colorType)
         {
             return false;
-        }
-
-        public void Connect(Interactor interactor)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public string GetConnectText()
-        {
-            return "Connect";
         }
     }
 }

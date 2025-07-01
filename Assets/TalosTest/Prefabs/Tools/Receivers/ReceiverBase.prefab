@@ -69,7 +69,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   laserPoint: {fileID: 2475784369411655951}
-  targetColor: {r: 1, g: 0, b: 0, a: 1}
+  type: 2
+  targetColor: 0
   activateEffect: {fileID: 8507706694497091019}
 --- !u!1 &5337618328505620684
 GameObject:

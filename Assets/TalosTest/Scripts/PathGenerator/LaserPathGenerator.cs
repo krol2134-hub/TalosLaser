@@ -91,7 +91,7 @@ namespace TalosTest.PathGenerator
         {
             List<LaserSegment> segments = new();
             
-            var color = startGenerator.LaserColor;
+            var color = startGenerator.Color;
             
             var pathType = PathType.Incomplete;
             var blockReason = BlockReason.None;
@@ -119,8 +119,11 @@ namespace TalosTest.PathGenerator
 
             if (pathType != PathType.Blocked)
             {
-                var lastNode = path.Last();
-                var isComplete = lastNode is Receiver || (lastNode is Generator generator && generator != startGenerator);
+                var lastInteractable = path.Last();
+                
+                var isOtherGenerator = lastInteractable.Type == InteractableType.Generator && lastInteractable != startGenerator;
+                var isComplete = isOtherGenerator || lastInteractable.Type == InteractableType.Receiver;
+                
                 pathType = isComplete ? PathType.Complete : PathType.Incomplete;
             }
 

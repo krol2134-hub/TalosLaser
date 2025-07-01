@@ -7,6 +7,7 @@ namespace TalosTest.Tool
     public abstract class LaserInteractable : MonoBehaviour
     {
         [SerializeField] private Transform laserPoint;
+        [SerializeField] private InteractableType type;
         
         private readonly List<LaserInteractable> _outputConnections = new();
         private readonly List<LaserInteractable> _inputConnections = new();
@@ -17,6 +18,7 @@ namespace TalosTest.Tool
         public IReadOnlyList<ColorType> InputLaserColors => _inputLaserColors;
         public Vector3 LaserPoint => laserPoint.position;
         public Transform LaserTransform => laserPoint;
+        public InteractableType Type => type;
 
         public virtual void Reset()
         {

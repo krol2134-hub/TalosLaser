@@ -88,7 +88,7 @@ namespace TalosTest.PathGenerator
                     var allSegments = laserPath.Segments;
                     foreach (var otherSegment in allSegments)
                     {
-                        if (currentGenerator.LaserColor == otherGenerator.LaserColor)
+                        if (currentGenerator.Color == otherGenerator.Color)
                         {
                             continue;
                         }

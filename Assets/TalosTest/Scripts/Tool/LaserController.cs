@@ -101,7 +101,7 @@ namespace TalosTest.Tool
             
             foreach (var (generator, pathList) in paths)
             {
-                var currentColor = generator.LaserColor;
+                var currentColor = generator.Color;
                 foreach (var laserPath in pathList)
                 {
                     foreach (var segment in laserPath.Segments)
@@ -112,7 +112,7 @@ namespace TalosTest.Tool
 
                         if (segment.ConnectionState is ConnectionState.PhysicalBlocker or ConnectionState.LineInception)
                         {
-                            laserVFXController.DisplayLaserEffect(generator.LaserColor, segment.Start.LaserPoint, segment.BlockPoint);
+                            laserVFXController.DisplayLaserEffect(generator.Color, segment.Start.LaserPoint, segment.BlockPoint);
                             _currentFrameInteractables.Add(segment.Start);
                             _hitMarkPositions.Add(segment.BlockPoint);
                             break;
@@ -131,7 +131,7 @@ namespace TalosTest.Tool
                         if (isLogicalConflictSegment)
                         {
                             var targetPoint = CalculateMiddleConflictPosition(segment);
-                            laserVFXController.DisplayLaserEffect(generator.LaserColor, segment.Start.LaserPoint, targetPoint);
+                            laserVFXController.DisplayLaserEffect(generator.Color, segment.Start.LaserPoint, targetPoint);
                             _currentFrameInteractables.Add(segment.Start);
                             _hitMarkPositions.Add(targetPoint);
                             break;
@@ -139,14 +139,14 @@ namespace TalosTest.Tool
 
                         if (blockedInteractables.Contains(endInteractable))
                         {
-                            laserVFXController.DisplayLaserEffect(generator.LaserColor, startInteractable.LaserPoint, endInteractable.LaserPoint);
+                            laserVFXController.DisplayLaserEffect(generator.Color, startInteractable.LaserPoint, endInteractable.LaserPoint);
                             _currentFrameInteractables.Add(segment.Start);
                             break;
                         }
                         
                         var laserEnd = segment.End.LaserPoint;
                         startInteractable.AddInputColor(currentColor);
-                        laserVFXController.DisplayLaserEffectConnection(generator.LaserColor, laserStart, laserEnd);
+                        laserVFXController.DisplayLaserEffectConnection(generator.Color, laserStart, laserEnd);
 
                         _currentFrameInteractables.Add(startInteractable);
                     }
