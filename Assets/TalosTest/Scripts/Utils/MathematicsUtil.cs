@@ -1,8 +1,8 @@
 using UnityEngine;
 
-namespace TalosTest.Tool
+namespace TalosTest.Utils
 {
-    public static class MathematicsHelper
+    public static class MathematicsUtil
     {
         public static bool CheckLasersIntersect(Vector3 a1, Vector3 a2, Vector3 b1, Vector3 b2)
         {

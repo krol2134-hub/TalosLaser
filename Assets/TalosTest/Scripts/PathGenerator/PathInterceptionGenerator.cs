@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using TalosTest.Tool;
+using TalosTest.Utils;
 using UnityEngine;
 
 namespace TalosTest.PathGenerator
@@ -119,13 +120,13 @@ namespace TalosTest.PathGenerator
             var conflictStartPoint = conflictSegment.StartPoint;
             var conflictEndPoint = conflictSegment.EndPoint;
             
-            var checkIntersect = MathematicsHelper.CheckLasersIntersect(currentStartPoint, currentEndPoint, conflictStartPoint, conflictEndPoint);
+            var checkIntersect = MathematicsUtil.CheckLasersIntersect(currentStartPoint, currentEndPoint, conflictStartPoint, conflictEndPoint);
             if (!checkIntersect)
             {
                 return;
             }
             
-            var intersectionPoint = MathematicsHelper.GetLaserIntersectionPoint(currentStartPoint, currentEndPoint, conflictStartPoint, conflictEndPoint);
+            var intersectionPoint = MathematicsUtil.GetLaserIntersectionPoint(currentStartPoint, currentEndPoint, conflictStartPoint, conflictEndPoint);
             var distanceFromCurrent = Vector3.Distance(currentStartPoint, intersectionPoint);
             var distanceFromConflict = Vector3.Distance(conflictStartPoint, intersectionPoint);
             
