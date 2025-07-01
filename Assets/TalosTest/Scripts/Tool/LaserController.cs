@@ -145,10 +145,11 @@ namespace TalosTest.Tool
                         }
                         
                         var laserEnd = segment.End.LaserPoint;
-                        startInteractable.AddInputColor(currentColor);
+                        endInteractable.AddInputColor(currentColor);
                         laserVFXController.DisplayLaserEffectConnection(generator.Color, laserStart, laserEnd);
 
                         _currentFrameInteractables.Add(startInteractable);
+                        _currentFrameInteractables.Add(endInteractable);
                     }
                 }
             }
