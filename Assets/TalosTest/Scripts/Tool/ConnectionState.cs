@@ -6,5 +6,6 @@ namespace TalosTest.Tool
         Blocker,
         Conflict,
         PhysicalBlocker,
+        LineInception
     }
 }

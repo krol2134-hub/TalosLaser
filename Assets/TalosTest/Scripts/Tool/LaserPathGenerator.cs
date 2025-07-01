@@ -6,80 +6,76 @@ namespace TalosTest.Tool
 {
     public class LaserPathGenerator
     {
-        private readonly List<LaserInteractable> _currentChain = new();
+        private readonly LayerMask _layerMaskObstacle;
+        private readonly LaserInterceptionGenerator _laserInterceptionGenerator;
+        
+        private readonly Dictionary<(Vector3, Vector3), CollisionInfo> _collisionCache = new();
+
         private readonly HashSet<LaserInteractable> _blockedNodes = new();
         private readonly HashSet<LaserSegment> _blockedSegments = new();
-        private readonly Dictionary<Generator, List<List<LaserSegment>>> _allPaths = new();
-        private readonly Dictionary<Generator, List<List<LaserSegment>>> _allGeneratorPaths = new();
-        
-        private readonly LayerMask _layerMaskObstacle;
 
         public LaserPathGenerator(LayerMask layerMaskObstacle)
         {
             _layerMaskObstacle = layerMaskObstacle;
+            _laserInterceptionGenerator = new LaserInterceptionGenerator();
         }
-
-        public Dictionary<Generator, List<List<LaserSegment>>> FindAllPaths(Generator[] generators)
+        
+        public Dictionary<Generator, List<LaserPath>> FindAllPaths(Generator[] generators, out HashSet<LaserInteractable> blockedInteractables, out HashSet<LaserSegment> blockedSegments)
         {
+            _collisionCache.Clear();
             _blockedNodes.Clear();
             _blockedSegments.Clear();
-            _allPaths.Clear();
+            
+            var allPathsByGenerator = GenerateAllPaths(generators);
+
+            FilterPath(allPathsByGenerator);
+            ProcessPathInterception(allPathsByGenerator);
+            FindPathConflicts(allPathsByGenerator);
+
+            blockedInteractables = _blockedNodes;
+            blockedSegments = _blockedSegments;
+            
+            return allPathsByGenerator;
+        }
+
+        private Dictionary<Generator, List<LaserPath>> GenerateAllPaths(Generator[] generators)
+        {
+            var allPathsByGenerator = new Dictionary<Generator, List<LaserPath>>();
 
             foreach (var generator in generators)
             {
-                var pathToEndPoint = new List<List<LaserSegment>>();
-                var allPaths = new List<List<LaserSegment>>();
-                
-                FindPathSegmentsFromGeneratorToEnd(generator, generator, pathToEndPoint, allPaths);
-                
-                _allGeneratorPaths[generator] = pathToEndPoint;
-                _allPaths[generator] = allPaths;
+                var paths = new List<LaserPath>();
+                FindPathSegmentsFromGenerator(generator, paths);
+                allPathsByGenerator[generator] = paths;
             }
 
-            ProcessPathBlockers(_allGeneratorPaths);
-            ProcessFreeEndPointPathBranches(_allGeneratorPaths);
-            
-            return _allGeneratorPaths;
+            return allPathsByGenerator;
         }
 
-        private void FindPathSegmentsFromGeneratorToEnd(Generator startGenerator, LaserInteractable root,
-            List<List<LaserSegment>> allPathSegments, List<List<LaserSegment>> allPaths)
+        private void FindPathSegmentsFromGenerator(Generator startGenerator, List<LaserPath> paths)
         {
             var queue = new Queue<List<LaserInteractable>>();
-            queue.Enqueue(new List<LaserInteractable> { root });
+            queue.Enqueue(new List<LaserInteractable> { startGenerator });
 
             while (queue.Count > 0)
             {
                 var path = queue.Dequeue();
-                var currentConnection = path.Last();
+                var currentNode = path.Last();
 
-                if (path.Count > 1)
+                var laserPath = BuildSegmentPath(startGenerator, path);
+
+                if (laserPath.Segments.Count > 0)
                 {
-                    SavePath(startGenerator, path, allPaths);
+                    paths.Add(laserPath);
                 }
 
-                var isEnd = currentConnection is Receiver || (currentConnection is Generator generator && generator != startGenerator);
-                if (isEnd)
+                var isIncompletePath = laserPath.Type != PathType.Complete && laserPath.Type != PathType.Blocked;
+                if (!isIncompletePath)
                 {
-                    if (path.Count > 1)
-                    {
-                        SavePath(startGenerator, path, allPathSegments);
-                    }
-                    
                     continue;
                 }
-
-                //TODO Merge connection in Interactable
-                foreach (var next in currentConnection.InputConnections)
-                {
-                    if (!path.Contains(next))
-                    {
-                        var newPath = new List<LaserInteractable>(path) { next };
-                        queue.Enqueue(newPath);
-                    }
-                }
-
-                foreach (var next in currentConnection.OutputConnections)
+                
+                foreach (var next in currentNode.InputConnections.Concat(currentNode.OutputConnections))
                 {
                     if (!path.Contains(next))
                     {
@@ -90,272 +86,272 @@ namespace TalosTest.Tool
             }
         }
 
-        private static void SavePath(Generator startGenerator, List<LaserInteractable> path, List<List<LaserSegment>> pathsToSave)
+        private LaserPath BuildSegmentPath(Generator startGenerator, List<LaserInteractable> path)
         {
-            var segments = new List<LaserSegment>();
+            List<LaserSegment> segments = new();
+            
+            var color = startGenerator.LaserColor;
+            
+            var pathType = PathType.Incomplete;
+            var blockReason = BlockReason.None;
+
             for (var i = 0; i < path.Count - 1; i++)
             {
-                segments.Add(new LaserSegment(path[i], path[i + 1], ConnectionState.Free, startGenerator.LaserColor));
+                var startConnection = path[i];
+                var endConnection = path[i + 1];
+                var startPosition = startConnection.LaserPoint;
+                var endPosition = endConnection.LaserPoint;
+
+                if (CheckPhysicCollision(startPosition, endPosition, out var hitInfo))
+                {
+                    blockReason = BlockReason.PhysicalObstacle;
+                    pathType = PathType.Blocked;
+                    
+                    segments.Add(new LaserSegment(startConnection, endConnection, ConnectionState.PhysicalBlocker, color,
+                        hitInfo.HitPoint, hitInfo.Distance));
+                    
+                    break;
+                }
+
+                segments.Add(new LaserSegment(startConnection, endConnection, ConnectionState.Free, color));
             }
-                        
-            pathsToSave.Add(segments);
+
+            if (pathType != PathType.Blocked)
+            {
+                var lastNode = path.Last();
+                var isComplete = lastNode is Receiver || (lastNode is Generator generator && generator != startGenerator);
+                pathType = isComplete ? PathType.Complete : PathType.Incomplete;
+            }
+
+            return new LaserPath(segments, pathType, startGenerator, blockReason);
         }
 
-        private void ProcessPathBlockers(Dictionary<Generator, List<List<LaserSegment>>> allGeneratorPaths)
+        private bool CheckPhysicCollision(Vector3 start, Vector3 end, out CollisionInfo collisionInfo)
         {
-            if (_allGeneratorPaths.Count == 0)
+            var collisionPosition = (start, end);
+            if (_collisionCache.TryGetValue(collisionPosition, out var cachedInfo))
             {
-                return;
+                collisionInfo = cachedInfo;
+                return cachedInfo.IsHit;
             }
-            
-            Dictionary<Generator, List<List<LaserSegment>>> allGeneratorPathsTemp = new(allGeneratorPaths);
-            foreach (var generator1 in allGeneratorPathsTemp.Keys)
+
+            var direction = (end - start).normalized;
+            var maxDistance = Vector3.Distance(start, end);
+
+            if (Physics.Raycast(start, direction, out var hit, maxDistance, _layerMaskObstacle))
             {
-                foreach (var generator2 in allGeneratorPathsTemp.Keys)
+                var distanceToHit = Vector3.Distance(start, hit.point);
+                collisionInfo = new CollisionInfo(true, null, hit.point, distanceToHit);
+                _collisionCache[collisionPosition] = collisionInfo;
+                
+                return true;
+            }
+
+            collisionInfo = default;
+            return false;
+        }
+
+        private static void FilterPath(Dictionary<Generator, List<LaserPath>> allPaths)
+        {
+            foreach (var key in allPaths.Keys.ToList())
+            {
+                var paths = allPaths[key];
+                var completePaths = new List<LaserPath>();
+
+                foreach (var path in paths)
                 {
-                    if (generator1 == generator2 || generator1.LaserColor == generator2.LaserColor)
+                    if (path.Type == PathType.Complete)
                     {
+                        completePaths.Add(path);
+                    }
+                }
+
+                var filteredPaths = new List<LaserPath>();
+                foreach (var path in paths)
+                {
+                    if (path.Type != PathType.Incomplete)
+                    {
+                        filteredPaths.Add(path);
                         continue;
                     }
 
-                    foreach (var path1 in allGeneratorPathsTemp[generator1])
+                    var isChainFound = false;
+                    foreach (var completePath in completePaths)
                     {
-                        foreach (var path2 in allGeneratorPathsTemp[generator2])
+                        if (CheckSamePathChainIn(completePath.Segments, path.Segments))
                         {
-                            if (path1.Count != path2.Count)
-                            {
-                                continue;
-                            }
-                            
-                            var isValidChain = BuildChain(path1, path2);
-
-                            var isValidPath = isValidChain && _currentChain is { Count: > 1 };
-                            if (!isValidPath)
-                            {
-                                continue;
-                            }
-
-                            LaserInteractable blockedNode = null;
-                            LaserSegment blockedSegment = null;
-
-                            FindBlockers(_currentChain, ref blockedNode, ref blockedSegment);
-
-                            UpdatePathWithBlockers(generator1, path1, _currentChain, blockedNode, blockedSegment);
-                            UpdatePathWithBlockers(generator2, path2, _currentChain, blockedNode, blockedSegment);
+                            isChainFound = true;
+                            break;
                         }
                     }
+
+                    if (!isChainFound)
+                    {
+                        filteredPaths.Add(path);
+                    }
                 }
+
+                filteredPaths.Sort((a, b) => a.Type.CompareTo(b.Type));
+                allPaths[key] = filteredPaths;
             }
         }
 
-        private void ProcessFreeEndPointPathBranches(Dictionary<Generator, List<List<LaserSegment>>> allPathByGenerators)
+        private static bool CheckSamePathChainIn(List<LaserSegment> currentPath, List<LaserSegment> otherPath)
         {
-            var prioritySegments = new HashSet<(LaserInteractable, LaserInteractable)>();
-
-            foreach (var generatorPaths in allPathByGenerators.Values)
+            if (otherPath.Count == 0)
             {
-                foreach (var path in generatorPaths)
-                {
-                    foreach (var segment in path)
-                    {
-                        prioritySegments.Add((segment.Start, segment.End));
-                    }
-                }
+                return true;
             }
 
-            foreach (var generator in _allPaths.Keys)
+            if (currentPath.Count < otherPath.Count)
             {
-                var usedSegments = new HashSet<(LaserInteractable, LaserInteractable)>();
-                var nonPriorityPaths = new List<List<LaserSegment>>();
-
-                foreach (var path in _allPaths[generator])
-                {
-                    var isPathBlocked = CheckPathBlocked(path);
-                    if (isPathBlocked)
-                    {
-                        continue;
-                    }
-
-                    foreach (var segment in path)
-                    {
-                        var orderedSegment = (segment.Start, segment.End);
-                        if (prioritySegments.Contains(orderedSegment) || usedSegments.Contains(orderedSegment))
-                        {
-                            continue;
-                        }
-                        
-                        nonPriorityPaths.Add(new List<LaserSegment> { segment });
-                        usedSegments.Add(orderedSegment);
-                    }
-                }
-
-                if (nonPriorityPaths.Any())
-                {
-                    allPathByGenerators[generator].AddRange(nonPriorityPaths);
-                }
+                return false;
             }
-        }
 
-        private bool CheckPathBlocked(List<LaserSegment> path)
-        {
-            foreach (var segment in path)
+            for (var i = 0; i <= currentPath.Count - otherPath.Count; i++)
             {
-                if (_blockedNodes.Contains(segment.Start) || _blockedNodes.Contains(segment.End))
+                var isMatched = true;
+
+                for (var j = 0; j < otherPath.Count; j++)
+                {
+                    var currentSegment = currentPath[i + j];
+                    var otherSegment = otherPath[j];
+                    
+                    if (!currentSegment.CheckMatchingBySides(otherSegment))
+                    {
+                        isMatched = false;
+                        break;
+                    }
+                }
+
+                if (isMatched)
                 {
                     return true;
-                }
-                        
-                foreach (var currentSegment in _blockedSegments)
-                {
-                    if (currentSegment.CheckMatchingBySides(segment.Start, segment.End))
-                    {
-                        return true;
-                    }
                 }
             }
 
             return false;
         }
 
-        private bool BuildChain(List<LaserSegment> path1, List<LaserSegment> path2)
+        private void ProcessPathInterception(Dictionary<Generator, List<LaserPath>> allPaths)
         {
-            _currentChain.Clear();
-            
-            var isSamePath = true;
-
-            //TODO Generate chain with path generation before
-            for (var i = 0; i < path1.Count; i++)
+            var interceptionsBySegments = _laserInterceptionGenerator.ProcessPathInterceptions(allPaths);
+            foreach (var ((start, end), interceptionInfo) in interceptionsBySegments)
             {
-                var segment = path1[i];
-                var otherSegment = path2[path2.Count - 1 - i];
-
-                if (segment.Start != otherSegment.End || segment.End != otherSegment.Start)
+                foreach (var (_, paths) in allPaths)
                 {
-                    isSamePath = false;
-                    break;
-                }
-
-                _currentChain.Add(segment.Start);
-
-                if (i == path1.Count - 1)
-                {
-                    _currentChain.Add(segment.End);
-                }
+                    foreach (var laserPath in paths)
+                    {
+                        foreach (var otherSegment in laserPath.Segments)
+                        {
+                            if (otherSegment.CheckMatchingBySides(start, end))
+                            {
+                                laserPath.Type = PathType.Blocked;
+                                laserPath.BlockReason = BlockReason.LineIntersection;
+                                otherSegment.UpdateBlockState(ConnectionState.LineInception, interceptionInfo.Point, interceptionInfo.Distance);
+                            }
+                        }
+                    }
+                }   
             }
-
-            return isSamePath;
         }
 
-        private void FindBlockers(List<LaserInteractable> chain, ref LaserInteractable blockedNode, ref LaserSegment blockedSegment)
+        private void FindPathConflicts(Dictionary<Generator, List<LaserPath>> allGeneratorPaths)
         {
-            var midIndex = chain.Count / 2;
+            var completePaths = GetPathForConflicts(allGeneratorPaths);
 
-            var existingBlockedNode = chain.FirstOrDefault(node => _blockedNodes.Contains(node));
-            if (existingBlockedNode != null)
+            foreach (var generatorPaths in completePaths)
             {
-                blockedNode = existingBlockedNode;
-            }
-            else
-            {
-                for (var i = 0; i < chain.Count - 1; i++)
+                var paths = generatorPaths.Value;
+
+                foreach (var path in paths)
                 {
-                    var isFoundBrokenSegment = false;
+                    var segments = path.Segments;
 
-                    var startChain = chain[i];
-                    var endChain = chain[i + 1];
-                    foreach (var currentSegment in _blockedSegments)
+                    if (segments.Count == 0)
                     {
-                        if (currentSegment.CheckMatchingBySides(startChain, endChain))
+                        continue;
+                    }
+
+                    var midIndex = (segments.Count - 1) / 2;
+                    var hasBlockedSegment = false;
+                    var hasBlockedNode = false;
+
+                    foreach (var segment in segments)
+                    {
+                        if (IsSegmentBlocked(segment))
                         {
-                            blockedSegment = new LaserSegment(startChain, endChain, ConnectionState.Conflict);
-                            isFoundBrokenSegment = true;
+                            hasBlockedSegment = true;
+                            break;
+                        }
+
+                        if (_blockedNodes.Contains(segment.Start) || _blockedNodes.Contains(segment.End))
+                        {
+                            hasBlockedNode = true;
                             break;
                         }
                     }
-                    
-                    if (isFoundBrokenSegment)
+
+                    if (segments.Count % 2 != 0)
                     {
-                        break;
+                        if (hasBlockedSegment || hasBlockedNode)
+                        {
+                            continue;
+                        }
+
+                        var midSegment = segments[midIndex];
+                        path.UpdateBlockStatus(BlockReason.LogicalConflict);
+                        _blockedSegments.Add(midSegment);
+                    }
+                    else
+                    {
+                        var midNode = segments[midIndex].End;
+
+                        if (_blockedNodes.Contains(midNode) || hasBlockedSegment || hasBlockedNode)
+                        {
+                            continue;
+                        }
+
+                        path.UpdateBlockStatus(BlockReason.LogicalBlock);
+                        _blockedNodes.Add(midNode);
                     }
                 }
+            }
+        }
 
-                if (blockedSegment != null)
+        private static Dictionary<Generator, List<LaserPath>> GetPathForConflicts(Dictionary<Generator, List<LaserPath>> allGeneratorPaths)
+        {
+            var allChains = new Dictionary<Generator, List<LaserPath>>();
+
+            foreach (var (generator, paths) in allGeneratorPaths)
+            {
+                foreach (var path in paths)
                 {
-                    return;
-                }
-                
-                var start = chain[midIndex - 1];
-                var end = chain[midIndex];
+                    if (path.Type is PathType.Blocked or PathType.Incomplete)
+                    {
+                        continue;
+                    }
                     
-                if (chain.Count % 2 != 0)
-                {
-                    blockedNode = end;
-                    _blockedNodes.Add(blockedNode);
-                }
-                else
-                {
-                    blockedSegment = new LaserSegment(start, end, ConnectionState.Conflict);
-                    _blockedSegments.Add(blockedSegment);
+                    if (path.Segments.Count == 0)
+                    {
+                        continue;
+                    }
+                    
+                    if (!allChains.ContainsKey(generator))
+                    {
+                        allChains[generator] = new List<LaserPath>();
+                    }
+                    
+                    allChains[generator].Add(path);
                 }
             }
+
+            return allChains;
         }
 
-        private void UpdatePathWithBlockers(Generator gen1, List<LaserSegment> path1, 
-            List<LaserInteractable> chain, LaserInteractable blockedNode, LaserSegment blockedSegment)
+        private bool IsSegmentBlocked(LaserSegment segment)
         {
-            var midIndex = chain.Count / 2;
-            
-            var adjustedPath1 = AdjustPath(path1, chain, blockedNode, blockedSegment, midIndex, gen1.LaserColor);
-
-            var updatedPaths = new List<List<LaserSegment>>();
-            foreach (var p in _allGeneratorPaths[gen1])
-            {
-                updatedPaths.Add(p == path1 ? adjustedPath1 : p);
-            }
-
-            _allGeneratorPaths[gen1] = updatedPaths;
-        }
-
-        private List<LaserSegment> AdjustPath(List<LaserSegment> path, List<LaserInteractable> chain,
-            LaserInteractable blockedNode, LaserSegment blockedSegment, int midIndex, ColorType color)
-        {
-            var adjustedPath = new List<LaserSegment>();
-
-            foreach (var segment in path)
-            {
-                var isBlockedConnection = blockedNode != null && (segment.Start == blockedNode || segment.End == blockedNode);
-                
-                var isBlockedSegment = false;
-                if (blockedSegment != null)
-                {
-                    isBlockedSegment =  segment.CheckMatchingBySides(blockedSegment.Start, blockedSegment.End);
-                }
-
-                var isConflictSegment = false;
-                var isMidSegment = chain.Count % 2 == 0 && chain.Count > 0;
-                if (isMidSegment)
-                {
-                    var nodeBeforeMid = chain[midIndex - 1];
-                    var nodeAtMid = chain[midIndex];
-                    isConflictSegment = segment.CheckMatchingBySides(nodeBeforeMid, nodeAtMid);
-                }
-
-                if (isBlockedConnection)
-                {
-                    adjustedPath.Add(new LaserSegment(segment.Start, segment.End, ConnectionState.Blocker));
-                    break;
-                }
-
-                if (isBlockedSegment || isConflictSegment)
-                {
-                    adjustedPath.Add(new LaserSegment(segment.Start, segment.End, ConnectionState.Conflict));
-                    break;
-                }
-
-                adjustedPath.Add(new LaserSegment(segment.Start, segment.End, ConnectionState.Free, color));
-            }
-
-            return adjustedPath;
+            return _blockedSegments.Any(s => s.CheckMatchingBySides(segment));
         }
     }
 }

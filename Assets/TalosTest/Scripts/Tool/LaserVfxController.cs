@@ -33,21 +33,6 @@ namespace TalosTest.Tool
         {
             ClearEffects();
         }
-        
-        public void DisplayConflictLaserEffect(ColorType currentColor, LaserInteractable current, LaserInteractable target)
-        {
-            var direction = target.LaserPoint - current.LaserPoint;
-            var distance = direction.magnitude / 2;
-            var targetPoint = current.LaserPoint + direction.normalized * distance;
-
-            DisplayLaserEffectWithHit(currentColor, current.LaserPoint, targetPoint);
-        }
-
-        public void DisplayLaserEffectWithHit(ColorType currentColor, Vector3 startPoint, Vector3 targetPoint)
-        {
-            DisplayHitMark(targetPoint);
-            DisplayLaserEffect(currentColor, startPoint, targetPoint);
-        }
 
         public void DisplayLaserEffectConnection(ColorType currentColor, Vector3 startPoint, Vector3 targetPoint)
         {
