@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using TalosTest.Tool;
 
-namespace TalosTest.Tool
+namespace TalosTest.PathGenerator
 {
     public class LaserPath
     {

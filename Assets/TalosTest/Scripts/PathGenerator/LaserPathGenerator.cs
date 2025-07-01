@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
+using TalosTest.Tool;
 using UnityEngine;
 
-namespace TalosTest.Tool
+namespace TalosTest.PathGenerator
 {
     public class LaserPathGenerator
     {
         private readonly LayerMask _layerMaskObstacle;
-        private readonly LaserInterceptionGenerator _laserInterceptionGenerator;
+        private readonly PathInterceptionGenerator _pathInterceptionGenerator;
         
         private readonly Dictionary<(Vector3, Vector3), CollisionInfo> _collisionCache = new();
 
@@ -17,7 +18,7 @@ namespace TalosTest.Tool
         public LaserPathGenerator(LayerMask layerMaskObstacle)
         {
             _layerMaskObstacle = layerMaskObstacle;
-            _laserInterceptionGenerator = new LaserInterceptionGenerator();
+            _pathInterceptionGenerator = new PathInterceptionGenerator();
         }
         
         public Dictionary<Generator, List<LaserPath>> FindAllPaths(Generator[] generators, out HashSet<LaserInteractable> blockedInteractables, out HashSet<LaserSegment> blockedSegments)
@@ -235,7 +236,7 @@ namespace TalosTest.Tool
 
         private void ProcessPathInterception(Dictionary<Generator, List<LaserPath>> allPaths)
         {
-            var interceptionsBySegments = _laserInterceptionGenerator.ProcessPathInterceptions(allPaths);
+            var interceptionsBySegments = _pathInterceptionGenerator.ProcessPathInterceptions(allPaths);
             foreach (var ((start, end), interceptionInfo) in interceptionsBySegments)
             {
                 foreach (var (_, paths) in allPaths)

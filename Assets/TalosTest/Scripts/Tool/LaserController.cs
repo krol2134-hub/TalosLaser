@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TalosTest.PathGenerator;
 using UnityEngine;
 
 namespace TalosTest.Tool

@@ -1,11 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using TalosTest.Tool;
 using UnityEngine;
 
-namespace TalosTest.Tool
+namespace TalosTest.PathGenerator
 {
-    public class LaserInterceptionGenerator
+    public class PathInterceptionGenerator
     {   
         private const int MaxIterations = 15;
         

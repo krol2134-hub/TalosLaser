@@ -1,6 +1,7 @@
+using TalosTest.Tool;
 using UnityEngine;
 
-namespace TalosTest.Tool
+namespace TalosTest.PathGenerator
 {
     public class LaserSegment
     {

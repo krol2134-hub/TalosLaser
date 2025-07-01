@@ -1,4 +1,4 @@
-namespace TalosTest.Tool
+namespace TalosTest.PathGenerator
 {
     public enum BlockReason
     {
