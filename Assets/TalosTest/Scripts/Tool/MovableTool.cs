@@ -15,7 +15,6 @@ namespace TalosTest.Tool
         public GameObject PlacedTool => placedTool;
 
         public abstract string GetPickUpText();
-        public abstract string GetInteractWithToolInHandsText();
 
         public virtual void PickUp(Interactor interactor)
         {

@@ -108,11 +108,6 @@ namespace TalosTest.Tool
             return "Take Connector";
         }
 
-        public override string GetInteractWithToolInHandsText()
-        {
-            return "Drop";
-        }
-
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {

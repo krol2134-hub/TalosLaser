@@ -14,8 +14,12 @@ namespace TalosTest.Character
         [SerializeField] private LayerMask connecntionLayer;
         [SerializeField] private float placeDistance = 2;
 
-        private MovableTool _heldTool;
+        private const string DropTooltip = "Drop";
+        private const string ConnectTooltip = "Connect";
+        
         private readonly List<LaserInteractable> _heldConnections = new();
+        
+        private MovableTool _heldTool;
 
         public Transform CameraTransform => cameraTransform;
         public float PlaceDistance => placeDistance;
@@ -93,7 +97,7 @@ namespace TalosTest.Character
                     return laserInteractable.GetSelectText();
                 }
                 
-                return _heldTool.GetInteractWithToolInHandsText();
+                return _heldConnections.Count > 0 ? ConnectTooltip : DropTooltip;
             }
         }
 
