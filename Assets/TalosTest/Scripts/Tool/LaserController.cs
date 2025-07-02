@@ -118,6 +118,8 @@ namespace TalosTest.Tool
                         var startInteractable = segment.Start;
                         var endInteractable = segment.End;
 
+                        _currentFrameInteractables.Add(startInteractable);
+
                         if (TryApplyPhysicalBlocks(segment, generator))
                         {
                             break;
@@ -133,7 +135,12 @@ namespace TalosTest.Tool
                             break;
                         }
                         
-                        ApplyNormalLaser(endInteractable, currentColor, generator, segment, startInteractable);
+                        if (TryApplyLaserToReceiver(endInteractable, currentColor, generator, segment))
+                        {
+                            break;
+                        }
+                        
+                        laserVFXController.DisplayLaserEffectConnection(generator.Color, segment.StartPoint, segment.EndPoint);
                     }
                 }
             }
@@ -150,7 +157,6 @@ namespace TalosTest.Tool
             
             var collisionPoint = segment.CollisionInfo.Point;
             laserVFXController.DisplayLaserEffect(generator.Color, segment.StartPoint, collisionPoint);
-            _currentFrameInteractables.Add(segment.Start);
             _hitMarkPositions.Add(collisionPoint);
             
             return true;
@@ -175,7 +181,6 @@ namespace TalosTest.Tool
             
             var targetPoint = CalculateMiddleConflictPosition(segment);
             laserVFXController.DisplayLaserEffect(generator.Color, segment.StartPoint, targetPoint);
-            _currentFrameInteractables.Add(segment.Start);
             _hitMarkPositions.Add(targetPoint);
             
             return true;
@@ -198,20 +203,31 @@ namespace TalosTest.Tool
             }
             
             laserVFXController.DisplayLaserEffect(generator.Color, segment.StartPoint, endInteractable.LaserPoint);
-            _currentFrameInteractables.Add(segment.Start);
             
             return true;
         }
 
-        private void ApplyNormalLaser(LaserInteractable endInteractable, ColorType currentColor, Generator generator,
-            LaserSegment segment, LaserInteractable startInteractable)
+        private bool TryApplyLaserToReceiver(LaserInteractable endInteractable, ColorType currentColor, Generator generator,
+            LaserSegment segment)
         {
-            endInteractable.AddInputColor(currentColor);
-
-            _currentFrameInteractables.Add(startInteractable);
             _currentFrameInteractables.Add(endInteractable);
+            if (endInteractable.Type == InteractableType.Receiver)
+            {
+                if (endInteractable.CanConnectColor(currentColor))
+                {
+                    endInteractable.AddInputColor(currentColor);
+                    laserVFXController.DisplayLaserEffectConnection(generator.Color, segment.StartPoint, segment.EndPoint);
+                }
+                else
+                {
+                    laserVFXController.DisplayLaserEffect(generator.Color, segment.StartPoint, segment.EndPoint);
+                    _hitMarkPositions.Add(endInteractable.LaserPoint);
+                }
+                
+                return true;
+            }
             
-            laserVFXController.DisplayLaserEffectConnection(generator.Color, segment.StartPoint, segment.EndPoint);
+            return false;
         }
 
         private void DisplayHitMarks()

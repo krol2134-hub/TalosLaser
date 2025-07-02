@@ -19,7 +19,7 @@ namespace TalosTest.Tool
 
         public override bool CanConnectColor(ColorType colorType)
         {
-            return true;
+            return colorType == targetColor;
         }
 
         public override void Reset()

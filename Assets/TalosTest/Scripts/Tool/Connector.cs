@@ -87,19 +87,6 @@ namespace TalosTest.Tool
 
         public override bool CanConnectColor(ColorType colorType)
         {
-            if (_inputLaserColors.Count <= 0)
-            {
-                return true;
-            }
-
-            foreach (var inputLaserColor in _inputLaserColors)
-            {
-                if (inputLaserColor != colorType)
-                {
-                    return false;
-                }
-            }
-            
             return true;
         }
 

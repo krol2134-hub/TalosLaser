@@ -70,7 +70,7 @@ namespace TalosTest.PathGenerator
                     paths.Add(laserPath);
                 }
 
-                var isIncompletePath = laserPath.Status != PathStatus.Complete && laserPath.Status != PathStatus.Blocked;
+                var isIncompletePath = laserPath.Status == PathStatus.Incomplete;
                 if (!isIncompletePath)
                 {
                     continue;
