@@ -2317,6 +2317,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: GeneratorRed
       objectReference: {fileID: 0}
+    - target: {fileID: 3964958769529548088, guid: d8d9365aaa697124496c013640c359ea,
+        type: 3}
+      propertyPath: outlineWidth
+      value: 2.08
+      objectReference: {fileID: 0}
     - target: {fileID: 8553740444018266467, guid: d8d9365aaa697124496c013640c359ea,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -5499,7 +5504,7 @@ PrefabInstance:
     - target: {fileID: 8553740444018266467, guid: 134e25a7e49acd341a00b4b9ea624406,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 5.5
+      value: 20.09
       objectReference: {fileID: 0}
     - target: {fileID: 8553740444018266467, guid: 134e25a7e49acd341a00b4b9ea624406,
         type: 3}
@@ -5919,6 +5924,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 65
   laserVFXController: {fileID: 415046643}
+  updateFrameRate: 10
   pathCountDebug: 0
   maxPathCountDebug: -1
   onlyPathTargetDebug: -1

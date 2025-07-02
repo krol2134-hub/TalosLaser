@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -8,6 +9,7 @@ namespace TalosTest.Tool
     {
         [SerializeField] private Transform laserPoint;
         [SerializeField] private InteractableType type;
+        [SerializeField] private Outline outline;
         
         private readonly List<LaserInteractable> _outputConnections = new();
         private readonly List<LaserInteractable> _inputConnections = new();
@@ -19,6 +21,11 @@ namespace TalosTest.Tool
         public Vector3 LaserPoint => laserPoint.position;
         public Transform LaserTransform => laserPoint;
         public InteractableType Type => type;
+
+        private void Awake()
+        {
+            UpdateSelectVisual(false);
+        }
 
         public virtual void Reset()
         {
@@ -101,6 +108,11 @@ namespace TalosTest.Tool
         public string GetSelectText()
         {
             return "Select";
+        }
+
+        public void UpdateSelectVisual(bool state)
+        {
+            outline.enabled = state;
         }
     }
 }

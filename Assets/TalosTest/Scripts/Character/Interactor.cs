@@ -38,10 +38,10 @@ namespace TalosTest.Character
             Instantiate(_heldTool.PlacedTool, heldItemRoot);
 
             _heldTool.PickUp(this);
-            
-            _heldConnections.Clear();
+
+            ClearHeldConnections();
         }
-        
+
         public void DropTool()
         {
             if (_heldTool is not null)
@@ -55,6 +55,16 @@ namespace TalosTest.Character
             for (var i = childCount - 1; i >= 0; i--)
             {
                 Destroy(heldItemRoot.transform.GetChild(i).gameObject);
+            }
+
+            ClearHeldConnections();
+        }
+
+        private void ClearHeldConnections()
+        {
+            foreach (var heldConnection in _heldConnections)
+            {
+                heldConnection.UpdateSelectVisual(false);
             }
 
             _heldConnections.Clear();
@@ -73,9 +83,10 @@ namespace TalosTest.Character
             }
             else
             {
-                if (TryGetLaserInteractable(out var connectionPoint))
+                if (TryGetLaserInteractable(out var connectionInteractable))
                 {
-                    _heldConnections.Add(connectionPoint);
+                    connectionInteractable.UpdateSelectVisual(true);
+                    _heldConnections.Add(connectionInteractable);
                     return;
                 }
 
