@@ -58,7 +58,7 @@ namespace TalosTest.Tool
         {
             _frameCount++;
 
-            if (_frameCount % 10 != 0)
+            if (_frameCount % updateFrameRate != 0)
             {
                 return;
             }

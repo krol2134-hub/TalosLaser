@@ -5924,7 +5924,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 65
   laserVFXController: {fileID: 415046643}
-  updateFrameRate: 3
+  updateFrameRate: 2
   pathCountDebug: 0
   maxPathCountDebug: -1
   onlyPathTargetDebug: -1
