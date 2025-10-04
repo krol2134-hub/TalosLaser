@@ -1,4 +1,5 @@
 using System;
+using TalosTest.Interactables;
 using TalosTest.Tool;
 using UnityEngine;
 

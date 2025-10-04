@@ -1,8 +1,7 @@
-using System;
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
-namespace TalosTest.Tool
+namespace TalosTest.Interactables
 {
     [SelectionBase]
     public abstract class LaserInteractable : MonoBehaviour

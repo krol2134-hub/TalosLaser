@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace TalosTest.Tool
+namespace TalosTest.Interactables
 {
     public class ToolTetromino : MonoBehaviour
     {

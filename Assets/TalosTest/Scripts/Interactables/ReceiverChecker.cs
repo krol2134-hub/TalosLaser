@@ -1,8 +1,7 @@
-using System;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace TalosTest.Tool
+namespace TalosTest.Interactables
 {
     public class ReceiverChecker : MonoBehaviour
     {

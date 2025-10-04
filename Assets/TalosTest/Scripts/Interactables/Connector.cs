@@ -5,7 +5,7 @@ using TalosTest.Visuals;
 using UnityEditor;
 using UnityEngine;
 
-namespace TalosTest.Tool
+namespace TalosTest.Interactables
 {
     public class Connector : MovableTool
     {

@@ -1,7 +1,7 @@
 ﻿using TalosTest.Character;
 using UnityEngine;
 
-namespace TalosTest.Tool
+namespace TalosTest.Interactables
 {
     public abstract class MovableTool : LaserInteractable, ITool
     {

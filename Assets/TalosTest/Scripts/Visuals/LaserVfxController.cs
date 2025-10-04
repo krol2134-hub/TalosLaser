@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TalosTest.Interactables;
 using TalosTest.Pools;
 using TalosTest.Settings;
 using TalosTest.Visuals;

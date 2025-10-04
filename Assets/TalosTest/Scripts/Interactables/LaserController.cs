@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using TalosTest.PathGenerator;
+using TalosTest.Tool;
 using UnityEngine;
 
-namespace TalosTest.Tool
+namespace TalosTest.Interactables
 {
     public class LaserController : MonoBehaviour
     {

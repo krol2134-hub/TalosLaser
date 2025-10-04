@@ -1,4 +1,4 @@
-namespace TalosTest.Tool
+namespace TalosTest.Interactables
 {
     public enum ColorType
     {

@@ -1,6 +1,6 @@
 ﻿using TalosTest.Character;
 
-namespace TalosTest.Tool
+namespace TalosTest.Interactables
 {
     public interface ITool
     {

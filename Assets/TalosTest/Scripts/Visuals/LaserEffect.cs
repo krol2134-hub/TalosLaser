@@ -1,4 +1,5 @@
-﻿using TalosTest.Tool;
+﻿using TalosTest.Interactables;
+using TalosTest.Tool;
 using UnityEngine;
 
 namespace TalosTest.Visuals
