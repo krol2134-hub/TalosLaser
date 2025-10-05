@@ -123,13 +123,13 @@ namespace TalosTest.PathGenerator
             var conflictStartPoint = conflictSegment.StartPoint;
             var conflictEndPoint = conflictSegment.EndPoint;
             
-            var checkIntersect = MathematicsUtil.CheckLasersIntersect(currentStartPoint, currentEndPoint, conflictStartPoint, conflictEndPoint);
+            var checkIntersect = MathematicsUtils.CheckLasersIntersect(currentStartPoint, currentEndPoint, conflictStartPoint, conflictEndPoint);
             if (!checkIntersect)
             {
                 return;
             }
             
-            var intersectionPoint = MathematicsUtil.GetLaserIntersectionPoint(currentStartPoint, currentEndPoint, conflictStartPoint, conflictEndPoint);
+            var intersectionPoint = MathematicsUtils.GetLaserIntersectionPoint(currentStartPoint, currentEndPoint, conflictStartPoint, conflictEndPoint);
             var distanceFromCurrent = Vector3.Distance(currentStartPoint, intersectionPoint);
             var distanceFromConflict = Vector3.Distance(conflictStartPoint, intersectionPoint);
             
