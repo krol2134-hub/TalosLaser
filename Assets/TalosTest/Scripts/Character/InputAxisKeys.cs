@@ -1,5 +1,6 @@
 namespace TalosTest.Character
 {
+    //TODO Refactor with new InputSystem
     public class InputAxisKeys
     {
         public const string MouseX = "Mouse X";
