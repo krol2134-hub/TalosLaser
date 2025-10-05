@@ -33,7 +33,6 @@ namespace TalosTest.Character
         [Header("Jumping")]
         [SerializeField] private bool allowJumpingWhenSliding;
         [SerializeField] private bool allowDoubleJump;
-        [SerializeField] private bool allowWallJump;
         [SerializeField] private float jumpSpeed = 10f;
         [SerializeField] private float jumpPreGroundingGraceTime;
         [SerializeField] private float jumpPostGroundingGraceTime;
@@ -45,10 +44,8 @@ namespace TalosTest.Character
         private bool _jumpConsumed;
         private bool _jumpedThisFrame;
         private bool _doubleJumpConsumed;
-        private bool _canWallJump;
         private float _timeSinceJumpRequested = Mathf.Infinity;
         private float _timeSinceLastAbleToJump;
-        private Vector3 _wallJumpNormal;
 
         private void Start()
         {
@@ -163,21 +160,16 @@ namespace TalosTest.Character
         {
             if (!_jumpRequested)
             {
-                _canWallJump = false;
                 return;
             }
 
-            if (allowWallJump && _canWallJump)
-            {
-                PerformJump(ref currentVelocity, _wallJumpNormal);
-                _jumpRequested = false;
-                _jumpConsumed = true;
-                _jumpedThisFrame = true;
-                _canWallJump = false;
-                return;
-            }
+            var canDoubleJump = allowDoubleJump &&
+                                _jumpConsumed &&
+                                !_doubleJumpConsumed &&
+                                (allowJumpingWhenSliding
+                                    ? !motor.GroundingStatus.FoundAnyGround
+                                    : !motor.GroundingStatus.IsStableOnGround);
 
-            var canDoubleJump = allowDoubleJump && _jumpConsumed && !_doubleJumpConsumed && (allowJumpingWhenSliding ? !motor.GroundingStatus.FoundAnyGround : !motor.GroundingStatus.IsStableOnGround);
             if (canDoubleJump)
             {
                 PerformJump(ref currentVelocity, motor.CharacterUp);
@@ -202,8 +194,6 @@ namespace TalosTest.Character
                 _jumpConsumed = true;
                 _jumpedThisFrame = true;
             }
-
-            _canWallJump = false;
         }
 
         private void PerformJump(ref Vector3 currentVelocity, Vector3 direction)
@@ -235,20 +225,9 @@ namespace TalosTest.Character
             }
         }
 
-        public void OnMovementHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport)
-        {
-            var canWallJump = allowWallJump && !motor.GroundingStatus.IsStableOnGround && !hitStabilityReport.IsStable;
-            if (canWallJump)
-            {
-                _canWallJump = true;
-                _wallJumpNormal = hitNormal;
-            }
-        }
-
         public bool IsColliderValidForCollisions(Collider coll) => true;
-
         public void OnGroundHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport) { }
-
+        public void OnMovementHit(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, ref HitStabilityReport hitStabilityReport) { }
         public void ProcessHitStabilityReport(Collider hitCollider, Vector3 hitNormal, Vector3 hitPoint, Vector3 atCharacterPosition, Quaternion atCharacterRotation, ref HitStabilityReport hitStabilityReport) { }
         public void PostGroundingUpdate(float deltaTime) { }
         public void OnDiscreteCollisionDetected(Collider hitCollider) { }
