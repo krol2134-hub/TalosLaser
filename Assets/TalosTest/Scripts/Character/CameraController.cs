@@ -7,17 +7,13 @@ namespace TalosTest.Character
     {
         private readonly ExampleCharacterCamera _orbitCamera;
         private readonly Transform _followPoint;
-        private readonly TalosCharacterController _character;
+        private readonly PlayerController _character;
         private readonly PlayerInput _input;
-
-        public Quaternion CameraRotation => _orbitCamera != null 
-            ? _orbitCamera.Transform.rotation 
-            : Quaternion.identity;
-
+        
         public CameraController(
             ExampleCharacterCamera orbitCamera,
             Transform followPoint,
-            TalosCharacterController character,
+            PlayerController character,
             PlayerInput input)
         {
             _orbitCamera = orbitCamera;
@@ -32,13 +28,14 @@ namespace TalosTest.Character
         {
             if (_orbitCamera == null || _followPoint == null || _character == null)
             {
-                Debug.LogError("[TalosCameraController] Missing dependencies.");
                 return;
             }
 
             _orbitCamera.SetFollowTransform(_followPoint);
             _orbitCamera.IgnoredColliders.Clear();
-            _orbitCamera.IgnoredColliders.AddRange(_character.GetComponentsInChildren<Collider>());
+
+            var colliders = _followPoint.root.GetComponentsInChildren<Collider>();
+            _orbitCamera.IgnoredColliders.AddRange(colliders);
         }
 
         public void LateUpdate()
@@ -57,6 +54,8 @@ namespace TalosTest.Character
             {
                 ToggleCameraZoom();
             }
+
+            _character.CameraRotation = _orbitCamera.Transform.rotation;
         }
 
         private void ToggleCameraZoom()

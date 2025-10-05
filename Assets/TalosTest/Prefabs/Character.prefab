@@ -211,7 +211,6 @@ GameObject:
   - component: {fileID: 5868077659002457708}
   - component: {fileID: 7773314038686535368}
   - component: {fileID: 5591250126895720452}
-  - component: {fileID: 6441770743174978124}
   - component: {fileID: 5433006364903899566}
   - component: {fileID: 7294723131139922958}
   m_Layer: 6
@@ -250,9 +249,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c71b55f81eb64decabe8e5654d3111eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  character: {fileID: 6441770743174978124}
   orbitCamera: {fileID: 5402932056861605286}
   cameraFollowPoint: {fileID: 5593221224000310828}
+  interactor: {fileID: 5591250126895720452}
+  settings: {fileID: 11400000, guid: ef08b1eb125123f4199e8bb10fba938a, type: 2}
 --- !u!114 &5591250126895720452
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -276,34 +276,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 384
   placeDistance: 2
---- !u!114 &6441770743174978124
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5764106601475863796}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c38677f2707074f46a25baa7c5f4a08a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  motor: {fileID: 5433006364903899566}
-  interactor: {fileID: 5591250126895720452}
-  meshRoot: {fileID: 8894273209418778185}
-  maxStableMoveSpeed: 10
-  stableMovementSharpness: 15
-  orientationSharpness: 10
-  maxAirMoveSpeed: 10
-  airAccelerationSpeed: 5
-  drag: 0.1
-  allowJumpingWhenSliding: 0
-  allowDoubleJump: 0
-  allowWallJump: 0
-  jumpSpeed: 10
-  jumpPreGroundingGraceTime: 0
-  jumpPostGroundingGraceTime: 0
-  gravity: {x: 0, y: -30, z: 0}
 --- !u!114 &5433006364903899566
 MonoBehaviour:
   m_ObjectHideFlags: 0

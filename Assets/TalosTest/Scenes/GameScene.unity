@@ -6769,26 +6769,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 4704099400927734683, guid: f8d55b88a5c3c6e44b8f0797f4a10a75,
-        type: 3}
-      propertyPath: m_BackGroundColor.a
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4704099400927734683, guid: f8d55b88a5c3c6e44b8f0797f4a10a75,
-        type: 3}
-      propertyPath: m_BackGroundColor.b
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4704099400927734683, guid: f8d55b88a5c3c6e44b8f0797f4a10a75,
-        type: 3}
-      propertyPath: m_BackGroundColor.g
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4704099400927734683, guid: f8d55b88a5c3c6e44b8f0797f4a10a75,
-        type: 3}
-      propertyPath: m_BackGroundColor.r
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5764106601475863796, guid: f8d55b88a5c3c6e44b8f0797f4a10a75,
         type: 3}
       propertyPath: m_Name
@@ -6844,8 +6824,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 8048346701389370042, guid: f8d55b88a5c3c6e44b8f0797f4a10a75, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
