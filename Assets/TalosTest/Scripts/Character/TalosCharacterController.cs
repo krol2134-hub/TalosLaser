@@ -31,19 +31,22 @@ namespace TalosTest.Character
         [SerializeField] private float drag = 0.1f;
 
         [Header("Jumping")]
-        [SerializeField] private bool allowJumpingWhenSliding;
         [SerializeField] private bool allowDoubleJump;
         [SerializeField] private float jumpSpeed = 10f;
         [SerializeField] private float jumpPreGroundingGraceTime;
         [SerializeField] private float jumpPostGroundingGraceTime;
+
+        [Header("Forces")]
         [SerializeField] private Vector3 gravity = new(0f, -30f, 0f);
 
         private Vector3 _moveInputVector;
         private Vector3 _lookInputVector;
+
         private bool _jumpRequested;
         private bool _jumpConsumed;
         private bool _jumpedThisFrame;
         private bool _doubleJumpConsumed;
+
         private float _timeSinceJumpRequested = Mathf.Infinity;
         private float _timeSinceLastAbleToJump;
 
@@ -163,12 +166,7 @@ namespace TalosTest.Character
                 return;
             }
 
-            var canDoubleJump = allowDoubleJump &&
-                                _jumpConsumed &&
-                                !_doubleJumpConsumed &&
-                                (allowJumpingWhenSliding
-                                    ? !motor.GroundingStatus.FoundAnyGround
-                                    : !motor.GroundingStatus.IsStableOnGround);
+            var canDoubleJump = allowDoubleJump && _jumpConsumed && !_doubleJumpConsumed && !motor.GroundingStatus.IsStableOnGround;
 
             if (canDoubleJump)
             {
@@ -180,10 +178,10 @@ namespace TalosTest.Character
             }
 
             if (!_jumpConsumed &&
-                ((allowJumpingWhenSliding ? motor.GroundingStatus.FoundAnyGround : motor.GroundingStatus.IsStableOnGround)
-                 || _timeSinceLastAbleToJump <= jumpPostGroundingGraceTime))
+                (motor.GroundingStatus.IsStableOnGround || _timeSinceLastAbleToJump <= jumpPostGroundingGraceTime))
             {
                 var jumpDir = motor.CharacterUp;
+
                 if (motor.GroundingStatus is { FoundAnyGround: true, IsStableOnGround: false })
                 {
                     jumpDir = motor.GroundingStatus.GroundNormal;
@@ -209,7 +207,7 @@ namespace TalosTest.Character
                 _jumpRequested = false;
             }
 
-            if (allowJumpingWhenSliding ? motor.GroundingStatus.FoundAnyGround : motor.GroundingStatus.IsStableOnGround)
+            if (motor.GroundingStatus.IsStableOnGround)
             {
                 if (!_jumpedThisFrame)
                 {
