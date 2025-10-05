@@ -209,7 +209,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5868077659002457708}
-  - component: {fileID: 5617792909415371545}
+  - component: {fileID: 7773314038686535368}
   - component: {fileID: 5591250126895720452}
   - component: {fileID: 6441770743174978124}
   - component: {fileID: 5433006364903899566}
@@ -238,7 +238,7 @@ Transform:
   - {fileID: 2987947749940792648}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5617792909415371545
+--- !u!114 &7773314038686535368
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -247,12 +247,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 5764106601475863796}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2f47bc8afb9a3c645b96323a7ab16825, type: 3}
+  m_Script: {fileID: 11500000, guid: c71b55f81eb64decabe8e5654d3111eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  OrbitCamera: {fileID: 5402932056861605286}
-  CameraFollowPoint: {fileID: 5593221224000310828}
-  Character: {fileID: 6441770743174978124}
+  character: {fileID: 6441770743174978124}
+  orbitCamera: {fileID: 5402932056861605286}
+  cameraFollowPoint: {fileID: 5593221224000310828}
 --- !u!114 &5591250126895720452
 MonoBehaviour:
   m_ObjectHideFlags: 0
